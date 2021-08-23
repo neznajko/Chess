@@ -73,6 +73,18 @@ public:
     int flipflop( const int depth) const;
 };
 ////////////////////////////////////////////////////////
+/* mappings
+namespace std
+{
+    template<> struct less<Class1>
+    {
+       bool operator() (const Class1& lhs, const Class1& rhs) const
+       {
+           return lhs.id < rhs.id;
+       }
+    };
+}
+*/
 // log: - move makemove to Command                   [x]
 #endif// position_hpp
 ////////////////////////////////////////////////////////

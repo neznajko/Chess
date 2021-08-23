@@ -1,88 +1,143 @@
 ////////////////////////////////////////////////////////
 #include "stuff.hpp"
 #include "command.hpp"
+#include <libgen.h> // basename
+#include <unistd.h> // getopt
+#include <sstream>
+#include <fstream>
 ////////////////////////////////////////////////////////
 namespace opt {
-    std::string fen;
+    std::string fen{
+        "rnbqkbnr/pppppppp/8/8/"
+        "8/8/PPPPPPPP/RNBQKBNR"
+        " w KQkq - 0 0"
+    };
+    std::string path{}; // if empty no puzzles
+    int start{ 1};      //
+    int len{ 2};        //
+    bool no_engine{ false };
+    //    
+    void usage( char* prog, const int code)
+    {
+        std::cout << basename( prog) 
+                  << " -n (-m PATH) (-s START) (-l LEN) -h FEN\n"
+            "\t-n\t\tno engine\n"
+            "\t-m PATH\t\tpuzzle solvings\n"
+            "\t-s START\tstarting puzzle\n"
+            "\t-l LEN\t\tnumber of puzzles\n"
+            "\t-h \t\tprint this\n\n"
+            "\tFEN\t\tinitial position\n\n"
+            " All fields are optional. For example after running\n"
+            " \"./chess\" you will be able to play a game against\n"
+            " the machine mua-ha-ha-ha-ha..\n";
+        exit( code);
+    }
     void getopt( int argc, char* argv[] )
     {
-        if( argc > 1) {
-            fen = argv[1];
-        } else {
-            fen = ( "rnbqkbnr/pppppppp/8/8/"
-                    "8/8/PPPPPPPP/RNBQKBNR"
-                    " w KQkq - 0 0" );
+        std::stringstream ss;
+        int opt;
+        while( (opt = ::getopt( argc, argv, "nm:s:l:h")) != -1)
+        {
+            switch( opt) {
+                case 'n':
+                    no_engine = true;
+                    break;
+                case 'm':
+                    path = optarg;
+                    break;
+                case 's':
+                    ss << optarg;
+                    ss >> start;
+                    break;
+                case 'l':
+                    ss << optarg;
+                    ss >> len;
+                    break;
+                case 'h':
+                default: usage( argv[0], -1);
+            }
         }
-    }        
+        if( argc > optind) fen = argv[ optind];
+    }
 }
 ////////////////////////////////////////////////////////
-#include <cstdlib>
-void playgame( const std::string fen)
+class Game {
+private:
+    const std::string _fen;
+public:
+    Game( const std::string& fen): _fen( fen) {} // cons
+    void view() const;
+    void play() const;
+};
+void Game::view() const
 {
-    Position pos( fen);
+    Position pos( _fen);
     Command com( pos);
     do{
-        pos.getScores( 4);
+        pos.spit_moves();
+        pos.ordeer();
+        std::cout << pos.get_active_color()
+                  << ": "
+                  << pos.hash()
+                  << " ( " << pos.eval()
+                  <<" )\n";
+        std::cout << pos, "$ ";
+    } while( com.exec());
+}
+void Game::play() const
+{
+    Position pos( _fen);
+    Command com( pos);
+    do{
+        pos.getScores( 3);
         std::cout << pos, "$ ";
         if( !com.exec()) break;
     } while( true);
- }
+}
 ////////////////////////////////////////////////////////
-// log: What if player has no mooz?                  []
-#include <fstream>
-std::vector<std::string>
-loadfen( const std::string& path,
-         int start = 1,
-         const int len = 10)
+std::vector<std::string> loadfen()
 {
-    std::ifstream ifs( path);
-    std::string s;
+    std::ifstream ifs( opt::path);
     std::vector<std::string> vec;
-    //
-    --start; // j/start are 0/1 based
-    const int finish{ start + len};
+    // j/start are 0/1 based
+    int start{ opt::start - 1}; 
+    const int finish{ start + opt::len};
+    std::string buf;
     for( int j{}; j != finish; j++) {
-        std::getline( ifs, s);
+        std::getline( ifs, buf);
         if( j < start) continue;
-        vec.push_back( std::move( s));
+        vec.push_back( std::move( buf));
     }
     return vec;
 }
 ////////////////////////////////////////////////////////
-#include <ctime>
 int main( int argc, char* argv[])
 {
     setlocale( LC_CTYPE, "");
     opt::getopt( argc, argv);
-    srand( time( NULL));
     //////////////////////////////////////////// tes ing
     //return 0; ////////////////////////////////////t///
-    if( 1) {
-        playgame( opt::fen);
-    } else {
-        std::vector<std::string>
-            vec = loadfen( "./fen/mate2.txt", 25, 2);
+    if( opt::path.empty()) {
+        Game game( opt::fen);
+        if( opt::no_engine) {
+            game.view();
+        } else {
+            game.play();
+        }
+    } else { // Puzzle time
+        std::vector<std::string> vec{ loadfen()};
         for( const auto& fen: vec) {
-            Position pos( fen);
-            Command com( pos);
-            do{
-                pos.spit_moves();
-                pos.ordeer();
-                std::cout << pos.get_active_color()
-                          << ": "
-                          << pos.hash()
-                          << " ( " << pos.eval()
-                          <<" )\n";
-                std::cout << pos, "$ ";
-            } while( com.exec());
+            Game game( fen);
+            game.view();
         }
     }
-    return 0;
 }
 ////////////////////////////////////////////////////////
 // log: - New rules of chess, veneva a player makes an
 // e.p. move is forced to say: o-o-o-o pa-a-a-a 
 // so-o-o-o-o or some variant.
+//
 // 11:35
-// - Why I need depth 4 to find mate in 2? []
-// - Upload and backup                     []
+// 13:36 - 13:50 = 14 min
+// 14:14 - 14:43 = 29 min ( New Record !!)
+// 15:24 - 16:37 = 1h 13 min ( o_o)
