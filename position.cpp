@@ -664,7 +664,12 @@ bool Position::ckmove( const Move& move) const
     copy.pass();
     return !copy.ck();
 }
+////////////////////////////////////////////////////////
 std::forward_list<Position> Position::fork() const
+// If Bobby is in check thats legal if it's its turn,
+// but illegal if it's Anton( Human) turn!! Basically
+// don't make any per move checks, make a move and than
+// check if your King is in check!?
 {
     std::forward_list<Position> list;
     // _active_color -> _fig -> moves -> makemove -> pos
@@ -783,9 +788,6 @@ Position::getScores( const int depth) const
     cooperator_t coop = _active_color ? __gt__ : __lt__;
     std::sort( vec.begin(), vec.end(), coop);
 
-    for( std::size_t j{}; j < vec.size() and j < 15; ++j) {
-        std::cout << vec[j].move << ": " << vec[j].eval << "\n";
-    }
     return vec;
 }
 #include <climits>
@@ -827,4 +829,5 @@ int Position::flipflop( const int depth) const
 // log: - Makefile, dependencies                     []
 //      - C++ map hashing?                           []
 //      - cover mate in the flip-flops               []
-//      - try removing repetitions                   []
+//      - try removing repetitions( ckmove)          [~]
+//      - King in check scenario                     []

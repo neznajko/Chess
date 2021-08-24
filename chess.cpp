@@ -16,6 +16,7 @@ namespace opt {
     int start{ 1};      //
     int len{ 2};        //
     bool no_engine{ false };
+    bool debug{ false };
     //    
     void usage( char* prog, const int code)
     {
@@ -36,9 +37,12 @@ namespace opt {
     {
         std::stringstream ss;
         int opt;
-        while( (opt = ::getopt( argc, argv, "nm:s:l:h")) != -1)
+        while( (opt = ::getopt( argc, argv, "dnm:s:l:h")) != -1)
         {
             switch( opt) {
+                case 'd': // undocumented!?
+                    debug = true;
+                    break;
                 case 'n':
                     no_engine = true;
                     break;
@@ -86,12 +90,19 @@ void Game::view() const
 }
 void Game::play() const
 {
+    static const int depth{ 3}; // ply
     Position pos( _fen);
     Command com( pos);
     do{
-        pos.getScores( 3);
+        // Anton to play
+        // Display position and ask for a move.
         std::cout << pos, "$ ";
         if( !com.exec()) break;
+        std::cout << pos, "Thinking ..: ";
+        // Now Bobby( The Computer) to mov here:
+        const Move mov{ pos.getScores( depth)[ 0].move };
+        std::cout << mov, '\n';
+        pos.makemove( mov);
     } while( true);
 }
 ////////////////////////////////////////////////////////
@@ -116,6 +127,11 @@ int main( int argc, char* argv[])
     setlocale( LC_CTYPE, "");
     opt::getopt( argc, argv);
     //////////////////////////////////////////// tes ing
+    if( opt::debug) {
+        Position pos( opt::fen);
+        std::cout << pos, '\n';
+        return 0;
+    }
     //return 0; ////////////////////////////////////t///
     if( opt::path.empty()) {
         Game game( opt::fen);
@@ -141,3 +157,4 @@ int main( int argc, char* argv[])
 // 13:36 - 13:50 = 14 min
 // 14:14 - 14:43 = 29 min ( New Record !!)
 // 15:24 - 16:37 = 1h 13 min ( o_o)
+// 13:31 - 
