@@ -47,24 +47,35 @@ Move Command::getmove( std::string nput )
     }
     return Move( Coor( _sors ), Coor( _dest ), _type );
 }
-bool Command::exec()
+int Command::exec()
 {
     std::string nput;
     std::cin >> nput;
     const int back{ 
-        static_cast<int>( scoresheet_.size()) - 1 };
-    if( nput == "help" ){
-        std::cout << ":)\n";
+        static_cast<int>( scoresheet_.size()) - 1};
+    if( nput == "help") {
+        std::cout << " === The Legend of Chess:\n"
+            "a2a4          - move, capture, recapture or not?\n"
+            "0-0           - Castles on the King side\n"
+            "0-0-0         - Castles on the Queen side\n"
+            "h7g8=R        - recapture with Boom\n"
+            "b4a3-ah-pu-sò - capture en passant or not!\n"
+            "undo          - Yest,\n"
+            "redo          - Thats\n"
+            "help          - Print thus!\n";
+        return HELP;
     } else if( nput == "undo" ){
         if( top_ > 0 ){ // if first can't undo
             _pos = scoresheet_[ --top_ ];
         }
+        return UNDO;
     } else if( nput == "redo" ){
         if( top_ < back ){ // if last can't redo
             _pos = scoresheet_[ ++top_ ];
         }
+        return REDO;
     } else if( nput == "." ){
-        return false;
+        return QUIT;
     } else { //
         _pos.makemove( getmove( nput ));
         if( top_++ < back ){ // override
@@ -73,7 +84,7 @@ bool Command::exec()
             scoresheet_.push_back( _pos );
         }
     }
-    return true;
+    return MOVE;
 }
 ////////////////////////////////////////////////////////
 // log: - Knight bee too dee two!
@@ -82,3 +93,8 @@ bool Command::exec()
 // - The guy who has invented iterators shold be shot as
 // well!                                             [x]
 // - make exec bool and add "."                      [v]
+// - when playing, what's going on here?             []
+// - make exec return moar than two state and from play
+//   method figure what to do                        [v]
+// - make command make move from Bobby as well to handle
+//   properly the undo command                       []

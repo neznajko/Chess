@@ -17,7 +17,8 @@ private:
     Move getmove( const std::string nput );
 public:
     Command( Position& pos );
-    bool exec();
+    enum { MOVE, UNDO, REDO, HELP, QUIT };
+    int exec();
 };
 ////////////////////////////////////////////////////////
 // log: - encapsulate Move                           [x]

@@ -90,18 +90,26 @@ void Game::view() const
 }
 void Game::play() const
 {
-    static const int depth{ 3}; // ply
+    static const int depth{ 4}; // ply
     Position pos( _fen);
     Command com( pos);
     do{
         // Anton to play
         // Display position and ask for a move.
         std::cout << pos, "$ ";
-        if( !com.exec()) break;
-        std::cout << pos, "Thinking ..: ";
+        // Get the command and figure what to do..
+        switch( com.exec())
+        {
+            case Command::QUIT: return;
+            case Command::UNDO:
+            case Command::REDO:
+            case Command::HELP: continue;
+            default           : break;
+        }
+        std::cout << pos << "Thinking ..: " << std::flush;
         // Now Bobby( The Computer) to mov here:
         const Move mov{ pos.getScores( depth)[ 0].move };
-        std::cout << mov, '\n';
+        std::cout << mov.getSors(), ' ', mov.getDest(), '\n';
         pos.makemove( mov);
     } while( true);
 }
@@ -130,6 +138,10 @@ int main( int argc, char* argv[])
     if( opt::debug) {
         Position pos( opt::fen);
         std::cout << pos, '\n';
+        for( const auto& q: pos.fork()) {
+            
+            q.debug_spit();
+        }
         return 0;
     }
     //return 0; ////////////////////////////////////t///
@@ -152,9 +164,14 @@ int main( int argc, char* argv[])
 // log: - New rules of chess, veneva a player makes an
 // e.p. move is forced to say: o-o-o-o pa-a-a-a 
 // so-o-o-o-o or some variant.
+// - debug
+// - help command
 //
 // 11:35
 // 13:36 - 13:50 = 14 min
 // 14:14 - 14:43 = 29 min ( New Record !!)
 // 15:24 - 16:37 = 1h 13 min ( o_o)
-// 13:31 - 
+// 13:31 - 15:40 = 1h 09 min ( Nice try)
+// 17:34 - 18:45 = 1h 11 min ( Close)
+// 10:03 - 13:02 = 2h 59 min ( New Record !!)
+// 15:03 -

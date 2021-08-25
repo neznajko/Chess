@@ -285,13 +285,11 @@ Position::KnightMoves( const Figure& fig) const
         if( g == GUARD) continue;
         if( g == EMPTY) {
             //
-            const Move move{ sors, dest};
-            if( ckmove( move)) moves.push_front( move);
-            
+            moves.emplace_front( sors, dest);
+
         } else if( offset_color( g) != fig.getColor()) {
             // recapture
-            const Move move{ sors, dest, CRON };
-            if( ckmove( move)) moves.push_front( move);
+            moves.emplace_front( sors, dest, CRON);
         }
     }
     return moves;
@@ -311,8 +309,8 @@ Position::getMoves( const Figure& fig ) const
     return (this->*_UM[ fig.getUnit() ])( fig );
 }
 void Position::spit_moves() const
-// Ok loop over active_color figures and dump possible
-// mooz.
+// Ok loop over active_color figures and dump all
+// possible (unchecked ) moz.
 {
     std::stringstream ss;
     bool is_mate{ true };
@@ -355,14 +353,12 @@ moves_t Position::RangeMoves( const Figure& fig,
             dest += dR[k];
             g = _board.get_offset( dest);
             if( g != EMPTY) break;
-            const Move move{ sors, dest};
-            if( ckmove( move)) moves.push_front( move);
+            moves.emplace_front( sors, dest);
         }
         if( g != GUARD and
             offset_color( g) != fig.getColor()) {
             // capture, re-capture or not?
-            const Move move{ sors, dest, CRON };
-            if( ckmove( move)) moves.push_front( move);
+            moves.emplace_front( sors, dest, CRON);
         }
     }
     return moves;
@@ -454,18 +450,12 @@ moves_t Position::PawnMoves( const Figure& fig) const
         if( g == EMPTY) {
             if( dest == _npas) {
                 // yef!
-                const Move move{ sors, dest, CRON |NPAS };
-                if( ckmove( move)) {
-                    moves.push_front( move);   
-                }
+                moves.emplace_front( sors, dest, CRON |NPAS);
             }
         } else {
             if( g != GUARD &&
                 offset_color( g) != color) {
-                const Move move{ sors, dest, CRON }; // r
-                if( ckmove( move)) {                 // p
-                    moves.push_front( move);         // t
-                }                                    // e
+                moves.emplace_front( sors, dest, CRON);
             }
         }
     }
@@ -473,19 +463,13 @@ moves_t Position::PawnMoves( const Figure& fig) const
     Coor dest{ sors + dF };
     g = _board.get_offset( dest);
     if( g == EMPTY) {
-        const Move move{ sors, dest };
-        if( ckmove( move)) {
-            moves.push_front( move);   
-        }
+        moves.emplace_front( sors, dest);
         // ck 4 double moov
         if( sors.get_i() == STRT[ color]) {
             dest += dF;
             g = _board.get_offset( dest);
             if( g == EMPTY) {
-                const Move move{ sors, dest };
-                if( ckmove( move)) {
-                    moves.push_front( move);   
-                }
+                moves.emplace_front( sors, dest);
             }
         }
     }
@@ -655,15 +639,6 @@ bool Position::ck() const
     
     return undafire( king.get_coor());
 }
-bool Position::ckmove( const Move& move) const
-// After every move it will be illegal if the King is in
-// check, so check every move for that.
-{
-    Position copy{ *this};
-    copy.makemove( move);
-    copy.pass();
-    return !copy.ck();
-}
 ////////////////////////////////////////////////////////
 std::forward_list<Position> Position::fork() const
 // If Bobby is in check thats legal if it's its turn,
@@ -672,15 +647,19 @@ std::forward_list<Position> Position::fork() const
 // check if your King is in check!?
 {
     std::forward_list<Position> list;
-    // _active_color -> _fig -> moves -> makemove -> pos
+    // active_color -> fig -> moves -> makemove -> ck
     for( const auto& fig: _fig[ _active_color]) {
         // bug #0xabcd: figure should be in play
         if( fig.isOutOfPlay()) continue;
+        // regardless
         for( const auto& move: getMoves( fig)) {
-//            std::cerr << move, '\n';
-            Position copy{ *this};
-            copy.makemove( move);
-            list.push_front( std::move( copy));
+            Position pos{ *this};// copy
+            pos.makemove( move);//
+            pos.pass();        // what's going on here?
+            if( !pos.ck()) {  // not in check
+                pos.pass();  // restore move order
+                list.push_front( std::move( pos));
+            }
         }
     }
     return list;
@@ -775,6 +754,10 @@ Position::getScores( const int depth) const
             // apply the move, this will change the
             // active side as well
             copy.makemove( move);
+            // ck vhether King iz'n check
+            copy.pass();
+            if( copy.ck()) continue; // yep
+            copy.pass();
             // depth evaluate the position and push evaluation
             // to vec alongside with the corresponding move
             Score score{ move, copy.flipflop( depth - 1)};
@@ -829,5 +812,5 @@ int Position::flipflop( const int depth) const
 // log: - Makefile, dependencies                     []
 //      - C++ map hashing?                           []
 //      - cover mate in the flip-flops               []
-//      - try removing repetitions( ckmove)          [~]
-//      - King in check scenario                     []
+//      - try removing repetitions( ckmove)          [v]
+//      - King in check scenario                     [v]

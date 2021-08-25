@@ -71,4 +71,4 @@ moves_t Castles::getCastles( const Position& pos ) const
 }
 ////////////////////////////////////////////////////////
 // log: - ck for friendly figures                    [v]
-//      - the King should be at starting position    []
+//      - the King should be at starting position    [v]
