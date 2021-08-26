@@ -814,3 +814,5 @@ int Position::flipflop( const int depth) const
 //      - cover mate in the flip-flops               []
 //      - try removing repetitions( ckmove)          [v]
 //      - King in check scenario                     [v]
+// - try thinking about tree nodes counter           []
+// - Black prefers material than mate                []

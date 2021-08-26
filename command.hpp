@@ -19,6 +19,7 @@ public:
     Command( Position& pos );
     enum { MOVE, UNDO, REDO, HELP, QUIT };
     int exec();
+    void push();
 };
 ////////////////////////////////////////////////////////
 // log: - encapsulate Move                           [x]

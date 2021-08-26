@@ -3,7 +3,7 @@
 Command::Command( Position& pos ): _pos( pos ), top_(0)
 {
     std::cerr << "Check your keyboard.\n";
-    scoresheet_.push_back( _pos );
+    push();
 }
 ////////////////////////////////////////////////////////
 // e4d3-ah-pu-sa - on pa so
@@ -58,11 +58,12 @@ int Command::exec()
             "a2a4          - move, capture, recapture or not?\n"
             "0-0           - Castles on the King side\n"
             "0-0-0         - Castles on the Queen side\n"
-            "h7g8=R        - recapture with Boom\n"
-            "b4a3-ah-pu-sò - capture en passant or not!\n"
-            "undo          - Yest,\n"
+            "h7g8=R        - Promotion -19.99 %\n"
+            "b4a3-ah-pu-sò - re-capture-oo-pu-sa\n"
+            "undo          - yea,\n"
             "redo          - Thats\n"
-            "help          - Print thus!\n";
+            "help          - Print thus!\n"
+            ".             - quit position\n";
         return HELP;
     } else if( nput == "undo" ){
         if( top_ > 0 ){ // if first can't undo
@@ -78,13 +79,20 @@ int Command::exec()
         return QUIT;
     } else { //
         _pos.makemove( getmove( nput ));
-        if( top_++ < back ){ // override
-            scoresheet_[ top_ ] = _pos;
-        } else {
-            scoresheet_.push_back( _pos );
-        }
+        push();
     }
     return MOVE;
+}
+void Command::push()
+{
+    const int back{ 
+        static_cast<int>( scoresheet_.size()) - 1};
+    //
+    if( top_++ < back ){ // override
+        scoresheet_[ top_ ] = _pos;
+    } else {
+        scoresheet_.push_back( _pos );
+    }
 }
 ////////////////////////////////////////////////////////
 // log: - Knight bee too dee two!
@@ -93,8 +101,12 @@ int Command::exec()
 // - The guy who has invented iterators shold be shot as
 // well!                                             [x]
 // - make exec bool and add "."                      [v]
-// - when playing, what's going on here?             []
+// - when playing, what's going on here?             [v]
 // - make exec return moar than two state and from play
 //   method figure what to do                        [v]
 // - make command make move from Bobby as well to handle
-//   properly the undo command                       []
+//   properly the undo command                       [v]
+// - 10: 32, = 11: 07, ~ ( 00: 35,)
+// - 11: 48, = 13: 02, % ( 01: 14,)
+// - 13: 59, = 16: 07, * ( 02: 08,)
+// - repetition of back                              []
