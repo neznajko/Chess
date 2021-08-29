@@ -1,13 +1,22 @@
+////////////////////////////////////////////////////////
+#include "position.hpp"
+#include "stuff.hpp"
+
+#include <climits>
+#include <cstring>    // memset
+
 #include <sstream> 
 #include <iostream>
 #include <iomanip>    // setw
-#include <cstring>    // memset
 #include <iterator>   // istring_iterator
 #include <deque>
 #include <functional> // hash
-
-#include "position.hpp"
-#include "stuff.hpp"
+#include <unordered_map>
+#include <algorithm>
+////////////////////////////////////////////////////////
+namespace glob {
+    std::unordered_map<std::size_t, int> lookup;
+}
 ////////////////////////////////////////////////////////
 std::ostream&
 operator<<( std::ostream& os, const Board& board )
@@ -310,30 +319,28 @@ Position::getMoves( const Figure& fig ) const
 }
 void Position::spit_moves() const
 // Ok loop over active_color figures and dump all
-// possible (unchecked ) moz.
+// possible (checked ) moz.
 {
     std::stringstream ss;
-    bool is_mate{ true };
-    for( const auto& fig: _fig[ _active_color ])
-    {
-        if( fig.isOutOfPlay() ) continue;
-        const moves_t& moves{ getMoves( fig )};
-        if( moves.empty() ) continue;
-        is_mate = false;
+    int nmov{}; // number of moves( mate)
+    for( const auto& fig: _fig[ _active_color]) {
+        if( fig.isOutOfPlay()) continue;
+        const moves_t& moves{ getMoves( fig)};
         ss << fig, ": ";
-        for( const auto& move: moves )
-        {
+        for( const auto& move: moves) {
+            if( !ckmov( move)) continue;
+            ++nmov;
             ss << move.getDest();
-            if( const int p = move.getPmot() ){
-                ss << '('
-                   << Figure::_UNITS[ _active_color ][p]
-                   << ')';
+            if( const int p = move.getPmot()) {
+                ss << "("
+                   << Figure::_UNITS[ _active_color][ p]
+                   << ")";
             }
-            ss << ' ';
+            ss << " ";
         }
-        ss << '\n';
+        ss << "\n";
     }
-    if( is_mate) ss << "Checkmate!!\n";
+    if( !nmov) ss << "Checkmate!!\n";
     std::cout << ss.str();
 }
 ////////////////////////////////////////////////////////
@@ -665,7 +672,7 @@ std::forward_list<Position> Position::fork() const
     return list;
 }
 ////////////////////////////////////////////////////////
-void Position::debug_spit() const
+void Position::dont_spit() const
 //
 //  rnbqkbnr82
 //  pppppppp73
@@ -715,7 +722,6 @@ int Position::eval() const
     return sm[ WHITE] - sm[ BLACK];
 }
 ////////////////////////////////////////////////////////
-#include <algorithm>
 // make it happen
 bool __lt__( const Score& p, const Score& q)
 {
@@ -773,7 +779,6 @@ Position::getScores( const int depth) const
 
     return vec;
 }
-#include <climits>
 ////////////////////////////////////////////////////////
 int flop( const Position& p, const int depth);
 //
@@ -784,7 +789,8 @@ int flip( const Position& p, const int depth)
     int minscore{ INT_MAX };
     for( const auto& q: p.fork())
     {
-        const int score{ flop( q, depth - 1)};
+        int score;
+        score = flop( q, depth - 1);
         if( score < minscore) minscore = score;
     }
     return minscore;
@@ -809,10 +815,23 @@ int Position::flipflop( const int depth) const
     return flip( *this, depth);
 }
 ////////////////////////////////////////////////////////
+bool Position::ckmov( const Move& move) const
+// After every move it will be illegal if the King is in
+// check, so check for that.
+{
+    Position copy{ *this};
+    copy.makemove( move);
+    copy.pass();
+    return !copy.ck();
+}
+////////////////////////////////////////////////////////
+void Position::debug()
+{
+}
+////////////////////////////////////////////////////////
 // log: - Makefile, dependencies                     []
-//      - C++ map hashing?                           []
-//      - cover mate in the flip-flops               []
-//      - try removing repetitions( ckmove)          [v]
-//      - King in check scenario                     [v]
-// - try thinking about tree nodes counter           []
-// - Black prefers material than mate                []
+// - rook moves and castle rights                    []
+// - ckmov                                           []
+// - sort figures after fen initialization in
+// decreasing order and start geting moves from
+// behind                                            []

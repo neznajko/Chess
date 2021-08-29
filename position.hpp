@@ -1,10 +1,11 @@
+////////////////////////////////////////////////////////
 #if !defined position_hpp
 #define position_hpp
 
-#include <vector>
-
 #include "figure.hpp"
 #include "cast.hpp"
+
+#include <vector>
 ////////////////////////////////////////////////////////
 const int BSIZE{ 2 * FRAMEW + NRANKS }; // board size
 class Board {
@@ -63,28 +64,16 @@ public:
     moves_t KingMoves( const Figure& fig ) const;
     moves_t PawnMoves( const Figure& fig ) const;
     moves_t getMoves( const Figure& fig ) const;
-    //
     bool undafire( const Coor& coor) const;
     std::size_t hash() const;
     bool ck() const;
-    bool ckmove( const Move& move ) const;
+    bool ckmov( const Move& move) const;
     void pass(){ _active_color = !_active_color;}
-    void debug_spit() const; // no colored output
+    void dont_spit() const; // no colored position output
     int flipflop( const int depth) const;
+    void debug();
 };
 ////////////////////////////////////////////////////////
-/* mappings
-namespace std
-{
-    template<> struct less<Class1>
-    {
-       bool operator() (const Class1& lhs, const Class1& rhs) const
-       {
-           return lhs.id < rhs.id;
-       }
-    };
-}
-*/
-// log: - move makemove to Command                   [x]
+// log:
 #endif// position_hpp
 ////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////
 #include "command.hpp"
-Command::Command( Position& pos ): _pos( pos ), top_(0)
+Command::Command( Position& pos ): _pos( pos), top_( -1)
 {
     std::cerr << "Check your keyboard.\n";
     push();
@@ -51,19 +51,17 @@ int Command::exec()
 {
     std::string nput;
     std::cin >> nput;
-    const int back{ 
-        static_cast<int>( scoresheet_.size()) - 1};
     if( nput == "help") {
         std::cout << " === The Legend of Chess:\n"
             "a2a4          - move, capture, recapture or not?\n"
             "0-0           - Castles on the King side\n"
             "0-0-0         - Castles on the Queen side\n"
-            "h7g8=R        - Promotion -19.99 %\n"
-            "b4a3-ah-pu-sò - re-capture-oo-pu-sa\n"
-            "undo          - yea,\n"
-            "redo          - Thats\n"
+            "h7g8=R        - Promotion 0%\n"
+            "b4a3-ah-pu-sò - oh-pa-so as well\n"
+            "undo          - yea\n"
+            "redo          - nop\n"
             "help          - Print thus!\n"
-            ".             - quit position\n";
+            ".             - quit\n";
         return HELP;
     } else if( nput == "undo" ){
         if( top_ > 0 ){ // if first can't undo
@@ -71,7 +69,7 @@ int Command::exec()
         }
         return UNDO;
     } else if( nput == "redo" ){
-        if( top_ < back ){ // if last can't redo
+        if( top_ < back()){ // if last can't redo
             _pos = scoresheet_[ ++top_ ];
         }
         return REDO;
@@ -85,13 +83,10 @@ int Command::exec()
 }
 void Command::push()
 {
-    const int back{ 
-        static_cast<int>( scoresheet_.size()) - 1};
-    //
-    if( top_++ < back ){ // override
-        scoresheet_[ top_ ] = _pos;
+    if( top_++ < back()){ 
+        scoresheet_[ top_] = _pos; // override
     } else {
-        scoresheet_.push_back( _pos );
+        scoresheet_.push_back( _pos);
     }
 }
 ////////////////////////////////////////////////////////
@@ -99,14 +94,4 @@ void Command::push()
 //      - Ooh aah no wow waw ooh woo!
 // - rewrite getmove                                 [x]
 // - The guy who has invented iterators shold be shot as
-// well!                                             [x]
-// - make exec bool and add "."                      [v]
-// - when playing, what's going on here?             [v]
-// - make exec return moar than two state and from play
-//   method figure what to do                        [v]
-// - make command make move from Bobby as well to handle
-//   properly the undo command                       [v]
-// - 10: 32, = 11: 07, ~ ( 00: 35,)
-// - 11: 48, = 13: 02, % ( 01: 14,)
-// - 13: 59, = 16: 07, * ( 02: 08,)
-// - repetition of back                              []
+// well!                                             [v]

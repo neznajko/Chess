@@ -1,8 +1,10 @@
 ////////////////////////////////////////////////////////
 #include "stuff.hpp"
 #include "command.hpp"
+
 #include <libgen.h> // basename
 #include <unistd.h> // getopt
+
 #include <sstream>
 #include <fstream>
 ////////////////////////////////////////////////////////
@@ -77,20 +79,25 @@ void Game::view() const
 {
     Position pos( _fen);
     Command com( pos);
-    do{
+    do {
         pos.spit_moves();
         pos.ordeer();
         std::cout << pos.get_active_color()
                   << ": "
                   << pos.hash()
                   << " ( " << pos.eval()
-                  <<" )\n";
+                  <<")\n";
         std::cout << pos, "$ ";
-    } while( com.exec());
+    } while( com.exec() != Command::QUIT);
 }
 void Game::play() const
 {
     static const int depth{ 4}; // ply
+    static const std::vector<std::string> msg = {
+        "Nice mov!", "Uh..", "[ Ok]", "z-z-z-z",
+        "Are you sure?", "o_o", "x x", "thats?",
+        "?!", "poow", "ha-ha-ha",
+    };
     Position pos( _fen);
     Command com( pos); // takes pos as reference
     do{
@@ -106,10 +113,16 @@ void Game::play() const
             case Command::HELP: continue;
             default           : break;
         }
-        std::cout << pos << "Thinking ..: " << std::flush;
         // Now Bobby( The Computer) to mov here:
-        const Move mov{ pos.getScores( depth)[ 0].move };
-        std::cout << mov.getSors(), ' ', mov.getDest(), '\n';
+        int j = time( NULL) % msg.size();
+        std::cout << pos << "$ " << msg[ j] << "\n" 
+                  << std::flush;
+        const auto scores{ pos.getScores( depth)};
+        if( scores.empty()) {
+            std::cout << "Checkmate!!\n";
+            break;
+        }
+        const Move mov{ scores[ 0].move };
         pos.makemove( mov);
         com.push(); // write in scoresheet
     } while( true);
@@ -137,26 +150,8 @@ int main( int argc, char* argv[])
     opt::getopt( argc, argv);
     //////////////////////////////////////////// tes ing
     if( opt::debug) {
-        const int depth{ 2}; // ply
         Position pos( opt::fen);
-        Command com( pos); // takes pos as reference
-        do{
-            for( const auto& score: pos.getScores( depth))
-            {
-                std::cout << score.move << ": "
-                          << score.eval << "\n";
-            }
-            std::cout << pos, "$ ";
-            switch( com.exec())
-            {
-                case Command::UNDO:
-                case Command::REDO:
-                case Command::HELP: continue;
-                case Command::QUIT:
-                default           : break;
-            }
-        } while( true);
-        return 0;
+        pos.debug();
     }
     //return 0; ////////////////////////////////////t///
     if( opt::path.empty()) {
@@ -179,6 +174,5 @@ int main( int argc, char* argv[])
 // e.p. move is forced to say: o-o-o-o pa-a-a-a 
 // so-o-o-o-o or some variant.
 // 11:35
-// 10:03 - 13:02 = 2h 59 min ( New Record !!)
-// [ nxt] { consider dumping the scores in debug mode}
-// - change view finction []
+// - what's going on here?                           []
+// - Segmentation fault on mate                      []
