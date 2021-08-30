@@ -144,11 +144,10 @@ int main( int argc, char* argv[])
 {
     setlocale( LC_CTYPE, "");
     opt::getopt( argc, argv);
-     //////////////////////////////////////////// tes ing
-    if( opt::debug) {       
-        return 0;
+    //////////////////////////////////////////// tes ing
+    if( opt::debug) {
+        return 0; //////////////////////////////////t///
     }
-    //return 0; ////////////////////////////////////t///
     if( opt::path.empty()) {
         Game game( opt::fen);
         if( opt::no_engine) {
