@@ -92,7 +92,7 @@ void Game::play() const
     static const std::vector<std::string> msg = {
         "Nice mov!", "Uh..", "[ Ok]", "z-z-z-z",
         "Are you sure?", "o_o", "x x", "thats?",
-        "?!", "poow", "ha-ha-ha",
+        "?!", "poow", "ha-ha-ha", "àa-pu-sa"
     };
     Position pos( _fen);
     Command com( pos); // takes pos as reference
@@ -140,12 +140,17 @@ std::vector<std::string> loadfen()
     return vec;
 }
 ////////////////////////////////////////////////////////
+#include <list>
+void trythus()
+{}
+////////////////////////////////////////////////////////
 int main( int argc, char* argv[])
 {
     setlocale( LC_CTYPE, "");
     opt::getopt( argc, argv);
     //////////////////////////////////////////// tes ing
     if( opt::debug) {
+        trythus();
         return 0; //////////////////////////////////t///
     }
     if( opt::path.empty()) {
