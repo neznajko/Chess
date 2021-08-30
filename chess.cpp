@@ -144,12 +144,9 @@ int main( int argc, char* argv[])
 {
     setlocale( LC_CTYPE, "");
     opt::getopt( argc, argv);
-    std::cout << opt::len << std::endl;
-    
-    //////////////////////////////////////////// tes ing
-    if( opt::debug) {
-        Position pos( opt::fen);
-        pos.debug();
+     //////////////////////////////////////////// tes ing
+    if( opt::debug) {       
+        return 0;
     }
     //return 0; ////////////////////////////////////t///
     if( opt::path.empty()) {

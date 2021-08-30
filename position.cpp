@@ -830,8 +830,11 @@ void Position::debug()
 }
 ////////////////////////////////////////////////////////
 // log: - Makefile, dependencies                     []
-// - rook moves and castle rights                    []
+// - King, Rook moves and castle rights              []
 // - ckmov                                           []
 // - sort figures after fen initialization in
 // decreasing order and start geting moves from
 // behind                                            []
+// - valid field in Position, ckmov returns position,
+// remove pass, but before that implement the chrono
+// class                                             []
