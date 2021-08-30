@@ -8,7 +8,7 @@ center( a.k.a free beer award) variant.
 
 ```Python
 You have problem solving mate in two? Chess program is your best bet!
-Just load the position and go to a restraint than when you come back
+Just load the position and go to a restaurant than when you come back
 your problem will be solved!
 ```
 
