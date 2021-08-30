@@ -173,4 +173,4 @@ int main( int argc, char* argv[])
 // so-o-o-o-o or some variant.
 // 11:35
 // - what's going on here?                           []
-// - Segmentation fault on mate                      []
+// - Segmentation fault on mate                      [v]
