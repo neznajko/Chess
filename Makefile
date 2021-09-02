@@ -1,37 +1,19 @@
-DEBUG  = -g3
-CFLAGS = -Wall
-OBJS   = chess.o coor.o figure.o move.o cast.o \
-         position.o command.o
+TARGET   = chess
+DEBUG    = -g3
+CXXFLAGS = -Wall
+OBJS     = chess.o
 #
-chess: ${OBJS}
+${TARGET}: ${OBJS}
 	g++ ${DEBUG} -o $@ $^
-
-command.o: command.cpp command.hpp
-	g++ ${DEBUG} ${CFLAGS} -c -o $@ $<
-
-position.o: position.cpp position.hpp
-	g++ ${DEBUG} ${CFLAGS} -c -o $@ $<
-
-cast.o: cast.cpp position.hpp
-	g++ ${DEBUG} ${CFLAGS} -c -o $@ $<
-
-move.o: move.cpp move.hpp
-	g++ ${DEBUG} ${CFLAGS} -c -o $@ $<
-
-figure.o: figure.cpp figure.hpp stuff.hpp
-	g++ ${DEBUG} ${CFLAGS} -c -o $@ $<
-
-coor.o: coor.cpp coor.hpp
-	g++ ${DEBUG} ${CFLAGS} -c -o $@ $<
-
+#
 chess.o: chess.cpp
-	g++ ${DEBUG} ${CFLAGS} -c -o $@ $<
 
 .PHONY: clean
 clean:
-	@$(RM) -v chess ${OBJS}
+	@$(RM) -v ${TARGET} ${OBJS}
 
 # log:
+#
 # coor.hpp:   <=====: coor.cpp
 # - <cstdint>
 # ------------

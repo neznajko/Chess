@@ -1,4 +1,6 @@
 ////////////////////////////////////////////////////////
+#include <locale.h>
+/*
 #include "stuff.hpp"
 #include "command.hpp"
 
@@ -156,9 +158,12 @@ void trythus()
 ////////////////////////////////////////////////////////
 // log: - total[ pos.flipflop( 3)] = 0.31 sec
 //        total[ pos.flipflop( 4)] = 7.80 sec
+*/
 int main( int argc, char* argv[])
 {
+
     setlocale( LC_CTYPE, "");
+    /*
     opt::getopt( argc, argv);
     //////////////////////////////////////////// tes ing
     if( opt::debug) {
@@ -179,11 +184,10 @@ int main( int argc, char* argv[])
             game.view();
         }
     }
+    */
 }
 ////////////////////////////////////////////////////////
 // log: - New rules of chess, veneva a player makes an
 // e.p. move is forced to say: o-o-o-o pa-a-a-a 
 // so-o-o-o-o or some variant.
-// 11:35
-// - what's going on here?                           []
-// - Segmentation fault on mate                      [v]
+// 
