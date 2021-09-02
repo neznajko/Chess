@@ -15,9 +15,9 @@ private:
     int8_t _i; // reversed rank
     int8_t _j; // file position
 public:
-    Coor( const std::string& chessnot );
-    Coor( const int8_t i=0, const int8_t j=0 ):
-        _i( i ), _j( j ) {}
+    Coor( const std::string& chessnot);
+    Coor( const int8_t i = 0, const int8_t j = 0):
+        _i( i), _j( j) {}
     int  get_i() const { return _i; }
     int  get_j() const { return _j; }
     void set_i( const int8_t i ){ _i = i; }

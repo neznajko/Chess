@@ -140,10 +140,22 @@ std::vector<std::string> loadfen()
     return vec;
 }
 ////////////////////////////////////////////////////////
-#include <list>
+#include <chrono>
 void trythus()
-{}
+{
+    using namespace std::chrono;
+    const auto start{ steady_clock::now()};
+    //
+    Position pos( "r4R2/1b2n1pp/p2Np1k1/1pn5/4pP1P/8/PPP1B1P1/2K4R w - - 1 0");
+    pos.ordeer();
+    //
+    const auto stop{  steady_clock::now()};
+    duration<double> total = stop - start;
+    std::cout << total.count(), " sec\n";
+}
 ////////////////////////////////////////////////////////
+// log: - total[ pos.flipflop( 3)] = 0.31 sec
+//        total[ pos.flipflop( 4)] = 7.80 sec
 int main( int argc, char* argv[])
 {
     setlocale( LC_CTYPE, "");

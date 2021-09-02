@@ -32,6 +32,27 @@ clean:
 	@$(RM) -v chess ${OBJS}
 
 # log:
-#   Figure <- Coor
-#     Move <- Coor
-# Position <- Castles, Coor, Board, Figure
+# coor.hpp:   <=====: coor.cpp
+# - <cstdint>
+# ------------
+# - <string> 
+# - <ostream>
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#

@@ -6,7 +6,12 @@
 ////////////////////////////////////////////////////////
 const std::string Figure::_UNITS[] = {
     "kqrbnp", "KQRBNP" };
-
+// Pawn is 4 units, King's value should be irrelevant,
+// but is possible to make an implementation where the
+// King is like a common figure.
+const int Figure:: _VALUES[] = {
+    800, 36, 20, 14, 12, 4
+};
 Figure::Figure( const char c, const int i, const int j ):
     _coor( i, j )
 {
@@ -42,4 +47,5 @@ std::string Figure::getPix() const
     return PIX[ getUnit() ];
 }
 ////////////////////////////////////////////////////////
-// log:
+// log: make namespace units or something            []
+//

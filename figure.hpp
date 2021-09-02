@@ -13,6 +13,8 @@ private:
     Coor   _coor; // Negative if out of play
 public:
     static const std::string _UNITS[];
+    const static int _VALUES[];
+    //
     Figure( const char c, const int i, const int j );
     bool  getColor() const { return !(_type < 0 ); }
     int  getUnit() const; // KING, KNIGHT, ..
@@ -36,6 +38,9 @@ public:
     std::string getPix() const;
 };
 ////////////////////////////////////////////////////////
-// log:
+// log: There is a lot of repetitions in units sequence
+// "kqrbnp", I have to be able to reorder the units in
+// one place, so that it will affect their sorting
+// order in Position constructor for example
 #endif// figure_hpp
 ////////////////////////////////////////////////////////

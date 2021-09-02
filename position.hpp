@@ -68,10 +68,14 @@ public:
     std::size_t hash() const;
     bool ck() const;
     bool ckmov( const Move& move) const;
+    // Check vheter color king is in check.
+    bool in_check( const bool color) const;
+    // Avoid repetitions; return position here, mark
+    // unvalid ones with additional parameter.
+    Position _ckmov( const Move& mov, bool& is_valid) const;
     void pass(){ _active_color = !_active_color;}
     void dont_spit() const; // no colored position output
     int flipflop( const int depth) const;
-    void debug();
 };
 ////////////////////////////////////////////////////////
 // log:

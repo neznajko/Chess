@@ -12,7 +12,7 @@
 #include <deque>
 #include <functional> // hash
 #include <unordered_map>
-#include <algorithm>
+#include <algorithm>  // sort
 ////////////////////////////////////////////////////////
 namespace glob {
     std::unordered_map<std::size_t, int> lookup;
@@ -63,6 +63,56 @@ std::vector<std::string> split( const std::string& str )
     return std::vector<std::string>( it( ss ), it() );
 }
 ////////////////////////////////////////////////////////
+bool operator<( const Figure& a, const Figure& b)
+{
+    return( a.getUnit() < b.getUnit()); // sorting _fig
+}
+////////////////////////////////////////////////////////
+Position::Position( const std::string& fen)
+// Forsyth–Edwards Notation
+// After 1.e4 c5:
+// rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR
+// w KQkq c6 0 2
+{
+    int i{ FRAMEW };
+    int j{ i };
+    // [ Ok] the plan has changed here, if we start
+    // looping from the King and all positions initiated
+    // from other figures have the same evaluation, than
+    // nPAS will mov the King. Zo first push up the
+    // figures, and set empty board squares. After that
+    // sort vectors in decreasing order using getUnit()
+    // method, and only than set the offsets. Thus when
+    // looping for moves start the scan from behind.
+    std::vector<std::string> vec{ split( fen )};
+    for( const char c: vec[ 0 ]){
+        if( c == '/') {
+            j = FRAMEW; // reset column
+            ++i;        // increment row
+        } else if( isdigit( c )){
+            const std::size_t n = c - '0';
+            memset( &_board.offset[ i][ j], EMPTY, n);
+            j += n;
+        } else {
+            const bool color = isupper( c);
+            _fig[ color].emplace_back( c, i, j);
+        }
+    }
+    // Sort out the figures using their will to move.
+    for( auto& fig: _fig) {
+        std::sort( fig.begin(), fig.end());
+    }
+    // [ Ok] now that we have stable offsets, put them
+    // in positon's board.
+    
+    // Get the other stuff from FEN.
+    _active_color = vec[ 1].front() == 'w';
+    rytes_.setFenRytes( vec[ 2]);
+    // 0h! pä 'sø
+    if( vec[ 3] != "-") _npas = Coor( vec[ 3]);
+}
+////////////////////////////////////////////////////////
+/*
 Position::Position( const std::string& fen )
 // Forsyth–Edwards Notation
 // After 1.e4 c5:
@@ -106,6 +156,7 @@ Position::Position( const std::string& fen )
     // 0h! pä 'sø
     if( vec[3] != "-" ) _npas = Coor( vec[3] ); // copy
 }
+*/
 ////////////////////////////////////////////////////////
 void Position::ordeer() const
 {
@@ -577,7 +628,12 @@ bool Position::undafire( const Coor& coor) const
     // One idea to change this is to check if coor is
     // empty than enemy is !_active_color otherwise it's
     // the opposite of figure color on that coor.
-    const bool nmy{ !_active_color}; // default
+    const int f{ _board.get_offset( coor )};
+    bool nmy;
+    // in this case check castle's road
+    if( f == EMPTY) nmy = !_active_color;
+    // check for check
+    else            nmy = !offset_color( f);
     for( int j: { 0, 1 }) // Artifitial Castle
     {
         // Pawn Fork
@@ -660,13 +716,18 @@ std::forward_list<Position> Position::fork() const
         if( fig.isOutOfPlay()) continue;
         // regardless
         for( const auto& move: getMoves( fig)) {
-            Position pos{ *this};// copy
-            pos.makemove( move);//
-            pos.pass();        // what's going on here?
-            if( !pos.ck()) {  // not in check
-                pos.pass();  // restore move order
+            bool is_valid;
+            Position pos{ _ckmov( move, is_valid )};
+            if( is_valid) {
                 list.push_front( std::move( pos));
-            }
+            }            
+            // Position pos{ *this};// copy
+            // pos.makemove( move);//
+            // pos.pass();        // what's going on here?
+            // if( !pos.ck()) {  // not in check
+            //     pos.pass();  // restore move order
+            //     list.push_front( std::move( pos));
+            // }
         }
     }
     return list;
@@ -708,15 +769,11 @@ void Position::dont_spit() const
 int Position::eval() const
 // White minus Black, in-play figures.
 {
-    // Pawn is 4 units, King's value is irrelevant.
-    const static int VALUE[] = {
-        0, 36, 20, 14, 12, 4
-    };
     int sm[] = { 0, 0 };
     for( const bool color: { BLACK, WHITE }) {
         for( const auto& fig: _fig[ color]) {
             if( fig.isOutOfPlay()) continue;
-            sm[ color] += VALUE[ fig.getUnit()];
+            sm[ color] += Figure::_VALUES[ fig.getUnit()];
         }
     }
     return sm[ WHITE] - sm[ BLACK];
@@ -824,17 +881,25 @@ bool Position::ckmov( const Move& move) const
     copy.pass();
     return !copy.ck();
 }
-////////////////////////////////////////////////////////
-void Position::debug()
+bool Position::in_check( const bool color) const
 {
+    return undafire( _fig[ color][ 0].get_coor());
+}
+Position Position::_ckmov( const Move& mov,
+                           bool& is_valid) const
+{
+    Position pos{ *this};
+    // this will switch the colors, position can't be
+    // valid if passive side is in check.
+    pos.makemove( mov);
+    is_valid = !pos.in_check( _active_color);
+    return pos;
 }
 ////////////////////////////////////////////////////////
 // log: - Makefile, dependencies                     []
 // - King, Rook moves and castle rights              []
-// - ckmov                                           []
+// - ckmov                                           [v]
 // - sort figures after fen initialization in
 // decreasing order and start geting moves from
-// behind                                            []
-// - valid field in Position, ckmov returns position,
-// remove pass, but before that implement the chrono
-// class                                             []
+// behind                                            [~]
+// - pass flag as ref to _ckmove, rm *valid()        [v]
