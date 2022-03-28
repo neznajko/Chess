@@ -1,39 +1,43 @@
+                          ////
 ////////////////////////////////////////////////////////
-#if !defined coor_hpp
-#define coor_hpp
-
-#include <cstdint> // int8_t
-
-#include <string>
-#include <ostream>
-
-#define FRAMEW 2 // frame width
-#define NRANKS 8 // number of ranks
+# if !defined coor_hpp
+# define      coor_hpp
+# include "io.hpp"
+# include <cstdint> // int8_t
 ////////////////////////////////////////////////////////
-class Coor { // Board Coordinates
-private:
-    int8_t _i; // reversed rank
-    int8_t _j; // file position
-public:
-    Coor( const std::string& chessnot);
+constexpr int FRAMEWID{ 2};  // frame width
+constexpr int RANKS{ 8};     // number of ranks
+constexpr int FILES{ RANKS}; // number of files
+////////////////////////////////////////////////////////
+struct Coor { // Board Coordinates
+    enum{ NW, N, NE, E, SE, S, SW, W, WORLD}; // cw
+    static const Coor dR[ WORLD];
+    static const Coor dN[ WORLD]; // kNight moves
+    int8_t i; // reversed rank
+    int8_t j; // file position
     Coor( const int8_t i = 0, const int8_t j = 0):
-        _i( i), _j( j) {}
-    int  get_i() const { return _i; }
-    int  get_j() const { return _j; }
-    void set_i( const int8_t i ){ _i = i; }
-    void set_j( const int8_t j ){ _j = j; }
-    int  getRank() const;
-    int  getFile() const;
+        i( i), j( j) {}
+    Coor( const std::string& chessnot);
+    inline int rank() const;
+    inline int file() const;
     std::string chessnot() const;
-    void operator+=( const Coor& y );
-    bool operator==( const Coor& y ) const;
-    bool operator!=( const Coor& y ) const;
+    void operator+=( const Coor& y) {
+        i += y.i;
+        j += y.j;
+    }
+    bool operator==( const Coor& y) const {
+        return( i == y.i and j == y.j);
+    }
+    bool operator!=( const Coor& y) const {
+        return( i != y.i or j != y.j);
+    }
 };
 ////////////////////////////////////////////////////////
 std::ostream&
-operator<<( std::ostream& os, const Coor& coor );
-Coor operator+( const Coor& x, const Coor& y );
-////////////////////////////////////////////////////////
+operator<<( std::ostream& ostrm, const Coor& coor);
+Coor operator+( const Coor& x, const Coor& y);
+Coor operator-( const Coor& x, const Coor& y);
+# endif ////////////////////////////////////////////////
 // log:
-#endif// coor_hpp
 ////////////////////////////////////////////////////////
+    ////                                        ////
