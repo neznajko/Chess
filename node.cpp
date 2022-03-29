@@ -22,6 +22,13 @@ std::string Board::str() const
     static const std::size_t N{ sizeof( Board)};
     return std::string(( char*) this, N);
 }
+// replace with ::v and return the previous unit
+Unit* Board::setUnit( const Coor& coor, Unit* v) {
+    auto [ i, j] = coor; // deconstruct
+    Unit* p = u[ i][ j]; // backup
+    u[ i][ j] = v;       // replace
+    return p;            // return
+}
 /////////////////////>>/////////////////////////////////
 // , . k r r . , . //                           { var a}
 // p b p , . , p p //                           

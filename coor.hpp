@@ -11,7 +11,7 @@ constexpr int FILES{ RANKS}; // number of files
 ////////////////////////////////////////////////////////
 struct Coor { // Board Coordinates
     enum{ NW, N, NE, E, SE, S, SW, W, WORLD}; // cw
-    static const Coor dR[ WORLD];
+    static const Coor dR[ WORLD + 1];
     static const Coor dN[ WORLD]; // kNight moves
     int8_t i; // reversed rank
     int8_t j; // file position
@@ -24,6 +24,10 @@ struct Coor { // Board Coordinates
     void operator+=( const Coor& y) {
         i += y.i;
         j += y.j;
+    }
+    void operator-=( const Coor& y) {
+        i -= y.i;
+        j -= y.j;
     }
     bool operator==( const Coor& y) const {
         return( i == y.i and j == y.j);

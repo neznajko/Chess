@@ -1,13 +1,14 @@
 ####____################################################
 TARGET   := chess
 DEBUG    := -g3
-CXXFLAGS := -Wall -DDEBUG -pedantic -std=c++17
+CXX      := g++
+CXXFLAGS := -pedantic -std=c++17
 OBJS     := chess.o io.o coor.o move.o figure.o node.o
 SRCS     := $(OBJS:.o=.cpp)
 DEPS     := deps.mk
 #
 ${TARGET}: ${OBJS}
-	g++ ${DEBUG} -o $@ $^
+	$(CXX) ${DEBUG} -o $@ $^
 
 -include $(DEPS)
 
@@ -19,7 +20,7 @@ cleanall:
 	@$(RM) -v ${TARGET} ${OBJS} $(DEPS)
 
 deps:
-	g++ -MM $(SRCS) > $(DEPS)
+	$(CXX) -MM $(SRCS) > $(DEPS)
 
 ########################################################
 # log: make gitignore rule and start pushing

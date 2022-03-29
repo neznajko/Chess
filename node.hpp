@@ -34,6 +34,7 @@ struct Board {
     Unit* getUnit( const Coor& coor) const {
         return u[ coor.i][ coor.j];
     }
+    Unit* setUnit( const Coor& coor, Unit* v);
 };
 std::ostream&
 operator<<( std::ostream& ostrm, const Board& board);

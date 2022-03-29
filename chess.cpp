@@ -84,7 +84,6 @@ void trythus() {
                   << endl;
     }
     node.army[ color].king->f->getmoz();
-    std::cout << node.board << endl;
     //
     const auto stop{ steady_clock::now()};
     duration<double> total = stop - start;

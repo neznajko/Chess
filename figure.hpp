@@ -22,6 +22,7 @@ protected:
     Coor   _coor; // 
     bool   _color;
     struct Node*  _node; // declaration of Node
+    struct Board* brd_;  // shortcut
     Figure( const int8_t type,
             const Coor& coor,
             const bool color):
@@ -45,7 +46,7 @@ public:
     }
     virtual void getmoz() = 0; // moves
     virtual ~Figure() {};
-    void setNode( Node* node) { _node = node; }
+    void setNode( Node* node);
     std::string mozstr() const;
     void ranger_moz( const int start, const int step);
 };
@@ -117,6 +118,11 @@ public:
     bool longrange( const int start,
                     const int type) const;
     bool poke(); // Hit by an enemy pawn?
+    // King's surrounding sqares, including the current
+    // coordiante are set to false if the King can't
+    // live there, if all are false it's Game Over.
+    bool aura[ Coor::WORLD + 1] = { true};
+    void chck_aura();
     ~King() {};
 };
 ////////////////////////////////////////////////////////

@@ -71,7 +71,7 @@ void Figure::ranger_moz( const int start, const int step)
         Unit* u;
         while( true) {
             dest += Coor::dR[k];
-            u = _node->board.getUnit( dest);
+            u = brd_->getUnit( dest);
             if( u != Unit::ZILCH) break;
             moz.emplace_back( dest);
         }
@@ -82,12 +82,16 @@ void Figure::ranger_moz( const int start, const int step)
         }
     }
 }
+void Figure::setNode( Node* node) {
+    _node = node;
+    brd_ = &( _node->board);
+}
 ////////////////////////////////////////////////////////
 void Knight::getmoz()
 {
     for( int j{ Coor::NW}; j < Coor::WORLD; j++) {
         const Coor& r{ _coor + Coor::dN[ j]};
-        Unit* u{ _node->board.getUnit( r)};
+        Unit* u{ brd_->getUnit( r)};
         if( u == Unit::GUARD) continue;
         if( u == Unit::ZILCH) {
             moz.emplace_back( r);
@@ -140,7 +144,7 @@ void Pawn::getmoz()
     // fst ck capture /re-capture //////////////////////////////
     for( const Coor& dr: { dL, dY }) {
         const Coor& dest{ _coor + dr};
-        Unit* u{ _node->board.getUnit( dest)};
+        Unit* u{ brd_->getUnit( dest)};
         if( u == Unit::ZILCH) {
             if( dest == _node->npas) {
                 moz.emplace_back( dest, CRON | NPAS);
@@ -153,13 +157,13 @@ void Pawn::getmoz()
     }
     // mov forward
     Coor&& dest{ _coor + dF};
-    Unit* u{ _node->board.getUnit( dest)};
+    Unit* u{ brd_->getUnit( dest)};
     if( u == Unit::ZILCH) {
         moz.emplace_back( dest);
         // ck for dble mov
         if( _coor.i == STAT[ _color]) {
             dest += dF;
-            u = _node->board.getUnit( dest);
+            u = brd_->getUnit( dest);
             if( u == Unit::ZILCH) {
                 moz.emplace_back( dest);
             }
@@ -184,11 +188,16 @@ void Pawn::pmot_blow() {
 }
 ////////////////////////////////////////////////////////
 void King::getmoz() {
-    std::cout << "King moz:\n";
+    std::cout << "King moz: ";
     std::cout << undafire() << endl;
     // .. Consider passing node instead _brd pointer
     // work out move unmove stof and for every possible
     // king move chck if it's undafire if not add to moz
+    std::cout << "Checking aura\n";
+    chck_aura();
+    for( int j = Coor::NW; j <= Coor::WORLD; j++) {
+        std::cout << j << " " << aura[ j] << endl;
+    }
 }
 ////////////////////////////////////////////////////////
 // For Kings and Knights 
@@ -199,7 +208,7 @@ bool King::shortrange( const Coor* const dr,
         // get corresponding square
         const Coor& coor = _coor + dr[ w];
         // Skip empty or guard squares
-        Unit* u = _node->board.getUnit( coor);
+        Unit* u = brd_->getUnit( coor);
         if( u == Unit::ZILCH or u == Unit::GUARD) {
             continue;
         }
@@ -219,7 +228,7 @@ bool King::longrange( const int start,
         const Coor& dr = Coor::dR[ w];
         Coor coor{ _coor};
         for(;; coor += dr) {
-            const Unit* const u{ _node->board.getUnit( coor)};
+            const Unit* const u{ brd_->getUnit( coor)};
             if( u == Unit::GUARD) break;
             if( u == Unit::ZILCH) continue;
             // Chck if it's enemy type
@@ -244,7 +253,7 @@ bool King::poke() {
         const int f = F[ _color][ j]; // forking direction
         const Coor& coor = _coor + Coor::dR[ f];
         // get the unit at that square and make the chck
-        const Unit* const u{ _node->board.getUnit( coor)};
+        const Unit* const u{ brd_->getUnit( coor)};
         if( u == Unit::ZILCH or u == Unit::GUARD) {
             continue;
         }
@@ -280,6 +289,33 @@ bool King::undafire() {
     // No-pawn endgames are exceptions, so don't check
     // enemy counters.
     return poke(); // Ok
+}
+////////////////////////////////////////////////////////
+void King::chck_aura() {
+    // Clear current board square, and obtaing King's
+    // Unit pointer. There are some complains about
+    // ZILCH being const, so use nullptr instead.
+    Unit* k = brd_->setUnit( _coor, nullptr);
+    // loop over all directions including self position
+    for( int j = Coor::NW; j <= Coor::WORLD; j++) {
+        _coor += Coor::dR[ j];
+        const Unit* const u = brd_->getUnit( _coor);
+        if( u == Unit::GUARD or  // out of dojo or
+            u != Unit::ZILCH and // frendly figure
+            u->f->color() == _color) { 
+            aura[ j] = false;
+        } else {
+            // - make Board::setUnit( coor)
+            // - backup destination unit
+            // - move king into that position
+            // - call undafire
+            // - re-establish
+            Unit* p = brd_->setUnit( _coor, k);
+            aura[ j] = !undafire();
+            brd_->setUnit( _coor, p);
+        }
+        _coor -= Coor::dR[ j];
+    }
 }
 ////////////////////////////////////////////////////////
 const Unit* Unit::ZILCH = nullptr;

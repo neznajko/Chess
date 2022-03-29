@@ -4,13 +4,15 @@
 ////////////////////////////////////////////////////////
 // WORLD DIRECTIONS ( i, j)
 // NW(-1,-1) N(-1, 0) NE(-1, 1)
-//  W( 0,-1)           E( 0, 1)
+//  W( 0,-1) W O R L D E( 0, 1)
 // SW( 1,-1) S( 1, 0) SE( 1, 1)
 const Coor Coor::dR[] = {
 //  NW           N            NE           E
     Coor(-1,-1), Coor(-1, 0), Coor(-1, 1), Coor( 0, 1),
 //  SE           S            SW           W
     Coor( 1, 1), Coor( 1, 0), Coor( 1,-1), Coor( 0,-1),
+//  WORLD
+    Coor( 0, 0)
 };
 // Knight moves
 // +---+---+---+---+---+
