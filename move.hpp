@@ -10,7 +10,7 @@
 //               3 - Ún pá sò
 //    e.g.: 000000 - just mouv!
 //          100000 - Capture áà pú sá
-# define MOVE 0x00 // Not very C++-ish, but Ok lets keep
+# define MOVE 0x00 // Not very C++ish, but Ok lets keep
 # define PMOT 0x07 // it simple and use define.
 # define CRON 0x08
 # define CAST 0x10

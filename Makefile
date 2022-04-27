@@ -3,7 +3,8 @@ TARGET   := chess
 DEBUG    := -g3
 CXX      := g++
 CXXFLAGS := -pedantic -std=c++17
-OBJS     := chess.o io.o coor.o move.o figure.o node.o
+OBJS     := chess.o io.o coor.o move.o figure.o node.o \
+            cast.o
 SRCS     := $(OBJS:.o=.cpp)
 DEPS     := deps.mk
 #
@@ -23,5 +24,5 @@ deps:
 	$(CXX) -MM $(SRCS) > $(DEPS)
 
 ########################################################
-# log: make gitignore rule and start pushing
+# log:
 ########################################################

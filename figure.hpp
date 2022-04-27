@@ -118,10 +118,9 @@ public:
     bool longrange( const int start,
                     const int type) const;
     bool poke(); // Hit by an enemy pawn?
-    // King's surrounding sqares, including the current
-    // coordiante are set to false if the King can't
-    // live there, if all are false it's Game Over.
-    bool aura[ Coor::WORLD + 1] = { true};
+    // King's surrounding sqares; if set to false than
+    // the King can't be there.
+    bool aura[ Coor::WORLD ] = { true };
     void chck_aura();
     ~King() {};
 };

@@ -190,14 +190,20 @@ void Pawn::pmot_blow() {
 void King::getmoz() {
     std::cout << "King moz: ";
     std::cout << undafire() << endl;
-    // .. Consider passing node instead _brd pointer
-    // work out move unmove stof and for every possible
-    // king move chck if it's undafire if not add to moz
-    std::cout << "Checking aura\n";
     chck_aura();
-    for( int j = Coor::NW; j <= Coor::WORLD; j++) {
-        std::cout << j << " " << aura[ j] << endl;
-    }
+    for( int j = Coor::NW; j < Coor::WORLD; j++) {
+        // Here if aura[ j ] is true get the corespondng
+        // square, and check vheter there is an enemy
+        // figure, if so set move type as CRON.
+        if(! aura[ j ]) continue;
+        const auto& coor{ _coor + Coor::dR[ j ]};
+        Unit* u{ brd_->getUnit( coor )};
+        if( u == Unit::ZILCH ){
+            moz.emplace_back( coor, MOVE );
+        } else {
+            moz.emplace_back( coor, CRON );
+        }
+    } // Check castles
 }
 ////////////////////////////////////////////////////////
 // For Kings and Knights 
@@ -297,7 +303,7 @@ void King::chck_aura() {
     // ZILCH being const, so use nullptr instead.
     Unit* k = brd_->setUnit( _coor, nullptr);
     // loop over all directions including self position
-    for( int j = Coor::NW; j <= Coor::WORLD; j++) {
+    for( int j = Coor::NW; j < Coor::WORLD; j++) {
         _coor += Coor::dR[ j];
         const Unit* const u = brd_->getUnit( _coor);
         if( u == Unit::GUARD or  // out of dojo or
@@ -321,6 +327,9 @@ void King::chck_aura() {
 const Unit* Unit::ZILCH = nullptr;
 const Unit* Unit::GUARD = Unit::ZILCH + 1;
 ////////////////////////////////////////////////////////
-// log:
+// log: - Discard self square from aura, it should be
+// checked from node positon with undafire method before
+// all other moves and from every figure move to check
+// if it's legal etc.
 ////////////////////////////////////////////////////////
     ////                                        ////

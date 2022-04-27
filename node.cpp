@@ -195,9 +195,9 @@ Node::Node( const std::string& fen)
     }
     // Get the other stuff from FEN.
     active_color = vec[ 1].front() == 'w';
-    // rytes_.setFenRytes( vec[ 2]);
+    rytes_.setFenRytes( vec[ 2 ]);
     // 0h! pä 'sø
-    if( vec[ 3] != "-") npas = Coor( vec[ 3]);
+    if( vec[ 3 ] != "-" ) npas = Coor( vec[ 3 ]);
 }
 ////////////////////////////////////////////////////////
 // log:

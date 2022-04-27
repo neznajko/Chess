@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////
 # include "node.hpp"
+# include "cast.hpp"
 
 # include <locale.h> // setlocale
 # include <libgen.h> // basename
@@ -75,6 +76,8 @@ void trythus() {
     //
     Node node( opt::fen);
     std::cout << node.board << endl;
+    std::cout << node.rytes_.bits() << endl;
+    return;
     const bool color = node.active_color;
     std::cout << Army::NAME[ color] << ": "
               << node.army[ color] << endl;
@@ -101,6 +104,4 @@ int main( int argc, char* argv[]) {
 }
 ////////////////////////////////////////////////////////
 // log: - revert() with bench as cron move stack     []
-//      - King moz                                   []
-//      --- make some undafire tests                 []
-//      - reread all code                            []
+// - work on castles rights                          []

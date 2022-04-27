@@ -3,6 +3,7 @@
 # if !defined node_hpp
 # define      node_hpp
 # include "figure.hpp"
+# include "cast.hpp"
 # include <vector>
 ////////////////////////////////////////////////////////
 // Here board is extended with a frame to handle Knight
@@ -61,6 +62,7 @@ struct Node { // Chess Position
     Board board;
     Army army[ RED]; // Black and White
     Coor npas; // on-pa-so square
+    Castles rytes_;
     Node( const std::string& fen); // FEN position
 };
 ////////////////////////////////////////////////////////
