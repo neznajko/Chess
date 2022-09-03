@@ -71,22 +71,38 @@ namespace opt {
 void trythus() {
     using namespace std::chrono;
     const auto start{ steady_clock::now()};
-    //
+    // FEN position is taken from program's arguments.
     std::cout << opt::fen << endl;
-    //
+    // Create a Node instance from it.
     Node node( opt::fen);
-    std::cout << node.board << endl;
-    std::cout << node.rytes_.bits() << endl;
-    return;
-    const bool color = node.active_color;
-    std::cout << Army::NAME[ color] << ": "
-              << node.army[ color] << endl;
+    // Dump the board position on stdout.
+    std::cout << node.board;
+    // Get the side to move.
+    const bool active_color = node.active_color;
+    std::cout << "( " << Army::NAME[ active_color ]
+              << " to move )\n";
+    // Print both armies
+    for( bool color: { BLACK, WHITE }){
+        std::cout << Army::NAME[ color] << ": "
+                  << node.army[ color] << endl;
+    }
+    // Dump enemy counters
     for( int j = 0; j < NOFIGS; j++) {
-        std::cout << Figure::_TRAITS[ !color][ j] << ' '
-                  << node.army[ !color].cntrs[ j]
+        std::cout << Figure::_TRAITS[ !active_color][ j] << ' '
+                  << node.army[ !active_color].cntrs[ j]
                   << endl;
     }
-    node.army[ color].king->f->getmoz();
+    switch( 0 ){
+        case 0:
+        {
+            auto king = (King*)(node.army[ active_color].king->f);
+            if( king ){
+                king->getmoz();
+                std::cout << king->mozstr() << endl;
+            }
+            break;
+        }
+    }
     //
     const auto stop{ steady_clock::now()};
     duration<double> total = stop - start;
@@ -105,3 +121,4 @@ int main( int argc, char* argv[]) {
 ////////////////////////////////////////////////////////
 // log: - revert() with bench as cron move stack     []
 // - work on castles rights                          []
+// - move object code in obj dir or smth             []

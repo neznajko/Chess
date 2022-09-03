@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////
 class Castles { // on the Queen Side
 private: 
-    enum { QEENSIDE, KINGSIDE };
+    enum { QWENSIDE, KINGSIDE };
     u_int8_t rytes_; // KQkq
     static int bitmask( const bool color,
                         const bool flank ){

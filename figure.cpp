@@ -188,8 +188,6 @@ void Pawn::pmot_blow() {
 }
 ////////////////////////////////////////////////////////
 void King::getmoz() {
-    std::cout << "King moz: ";
-    std::cout << undafire() << endl;
     chck_aura();
     for( int j = Coor::NW; j < Coor::WORLD; j++) {
         // Here if aura[ j ] is true get the corespondng
@@ -207,6 +205,23 @@ void King::getmoz() {
 }
 ////////////////////////////////////////////////////////
 // For Kings and Knights 
+// This function can have only one parameter becus the
+// ::dr vector and the ::type are dependent of each
+// other.
+// knight           [dN]       king     [dR]
+// +---+---+---+---+---+---+---+---+---+---+---+
+// |   ] 0 :   ' 1 ,   ;   (   !   ?   -   ,   |
+// +---+---+---+---+---+---+---+---+---+---+---+
+// | 7 ,   :   !   ` 2 '   "   , 0 ( 1 ) 2 "   (
+// +---+---+---+---+---+---+---+---+---+---+---+
+// )   _   ` k <   |   [   ]   : 7 - k , 3 :   ;
+// +---+---+---+---+---+---+---+---+---+---+---+
+// , 6 `   _   :   - 3 =   %   | 6 } 5 ( 4 )   .
+// +---+---+---+---+---+---+---+---+---+---+---+
+// :   - 5 _   ` 4 "   "   ,   :   |   |   [   ]
+// +---+---+---+---+---+---+---+---+---+---+---+
+// Basically loop over above squares and check vhether
+// there is an enemy figure of the given type.
 bool King::shortrange( const Coor* const dr,
                        const int type) const {
     // loop over World directions
@@ -218,15 +233,28 @@ bool King::shortrange( const Coor* const dr,
         if( u == Unit::ZILCH or u == Unit::GUARD) {
             continue;
         }
-        // Chck if it's enemy type
-        if( u->f->type()  == type and
+        // Is it an enemy figure of the given type?
+        if( u->f->type() == type and
             u->f->color() != _color) {
             return true; // vhether it's mate is unclear
         }
     }
     return false;
 }
-// For Rooks Bishops and Queens
+////////////////////////////////////////////////////////////////
+// For Rooks, Bishops and Queens. Loop over Bishop and Rook
+// directions and slide until figure or guard is met, if the
+// figure is an enemy of the corresponding type or queen return
+// true.
+// +---+---+---+   +---+---+---+
+// | 0 |   | 2 |   |   | 1 |   |
+// +---+---+---+   +---+---+---+
+// |   |   |   |   | 7 |   | 3 |
+// +---+---+---+   +---+---+---+
+// | 6 |   | 4 |   |   | 5 |   |
+// +---+---+---+   +---+---+---+
+// B,Q             R,Q
+//
 bool King::longrange( const int start,
                       const int type) const {
     // loop over World directions
@@ -265,7 +293,7 @@ bool King::poke() {
         }
         if( u->f->color() != _color and
             u->f->type() == Figure::PAWN) {
-            return true;
+            return true; // vhether it's mate is unclear
         }
     }
     return false;
@@ -280,12 +308,14 @@ bool King::undafire() {
         }
     }
     // next chck for Longrange Units
+    // Check the Queen as Bishop
     if( _node->army[!_color].cntrs[ Figure::BISHOP] > 0 or
         _node->army[!_color].cntrs[ Figure::QUEEN] > 0) {
         if( longrange( Coor::NW, Figure::BISHOP)) {
             return true;
         }
     }
+    // Check the Queen as Rook
     if( _node->army[!_color].cntrs[ Figure::ROOK] > 0  or
         _node->army[!_color].cntrs[ Figure::QUEEN] > 0) {
         if( longrange( Coor::N, Figure::ROOK)) {
@@ -298,15 +328,15 @@ bool King::undafire() {
 }
 ////////////////////////////////////////////////////////
 void King::chck_aura() {
-    // Clear current board square, and obtaing King's
+    // Clear current board square, and obtain King's
     // Unit pointer. There are some complains about
     // ZILCH being const, so use nullptr instead.
     Unit* k = brd_->setUnit( _coor, nullptr);
-    // loop over all directions including self position
+    // loop over all directions
     for( int j = Coor::NW; j < Coor::WORLD; j++) {
         _coor += Coor::dR[ j];
         const Unit* const u = brd_->getUnit( _coor);
-        if( u == Unit::GUARD or  // out of dojo or
+        if( u == Unit::GUARD or  // out of dojo
             u != Unit::ZILCH and // frendly figure
             u->f->color() == _color) { 
             aura[ j] = false;
@@ -322,6 +352,7 @@ void King::chck_aura() {
         }
         _coor -= Coor::dR[ j];
     }
+    brd_->setUnit( _coor, k);
 }
 ////////////////////////////////////////////////////////
 const Unit* Unit::ZILCH = nullptr;
@@ -331,5 +362,7 @@ const Unit* Unit::GUARD = Unit::ZILCH + 1;
 // checked from node positon with undafire method before
 // all other moves and from every figure move to check
 // if it's legal etc.
+// - restore king in chck_aura [v]
+// - chck undafire             [ ]
 ////////////////////////////////////////////////////////
     ////                                        ////

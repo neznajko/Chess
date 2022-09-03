@@ -122,9 +122,6 @@ void Army::unlink( Unit* p, const bool del)
 }
 void Army::getmoz()
 {
-# ifdef DEBUG
-    if(! king->f) return;
-# endif
     Unit* u{ king};
     do {
         u = u->next;
@@ -133,9 +130,6 @@ void Army::getmoz()
 }
 void Army::dmpmoz()
 {
-# ifdef DEBUG
-    if(! king->f) return;
-# endif
     Unit* u{ king};
     do {
         u = u->next;
