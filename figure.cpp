@@ -202,6 +202,7 @@ void King::getmoz() {
             moz.emplace_back( coor, CRON );
         }
     } // Check castles
+    Coor coor = _node->rytes_.check_KingSide( this );
 }
 ////////////////////////////////////////////////////////
 // For Kings and Knights 
@@ -346,6 +347,8 @@ void King::chck_aura() {
             // - move king into that position
             // - call undafire
             // - re-establish
+            // log: Move that code to a function, it is
+            // used by cast.cpp as well.
             Unit* p = brd_->setUnit( _coor, k);
             aura[ j] = !undafire();
             brd_->setUnit( _coor, p);
@@ -358,11 +361,6 @@ void King::chck_aura() {
 const Unit* Unit::ZILCH = nullptr;
 const Unit* Unit::GUARD = Unit::ZILCH + 1;
 ////////////////////////////////////////////////////////
-// log: - Discard self square from aura, it should be
-// checked from node positon with undafire method before
-// all other moves and from every figure move to check
-// if it's legal etc.
-// - restore king in chck_aura [v]
-// - chck undafire             [ ]
+// log:
 ////////////////////////////////////////////////////////
     ////                                        ////

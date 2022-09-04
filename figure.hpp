@@ -21,8 +21,6 @@ protected:
     int8_t _type; // KING, QUEEN, ..
     Coor   _coor; // 
     bool   _color;
-    struct Node*  _node; // declaration of Node
-    struct Board* brd_;  // shortcut
     Figure( const int8_t type,
             const Coor& coor,
             const bool color):
@@ -31,6 +29,9 @@ public:
     static const std::string _TRAITS[];  // k, K, b, ..
     enum { KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN };
     moz_t moz;
+    struct Node*  _node; // declaration of Node
+    struct Board* brd_;  // shortcut
+    //
     static Figure* factory( const char c, const Coor& coor);
     const Coor& coor() const { return _coor; }
     void set_coor( const Coor& coor) { _coor = coor; }

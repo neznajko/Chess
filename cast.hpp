@@ -4,9 +4,11 @@
 
 # include <bitset>
 ////////////////////////////////////////////////////////
+class Coor;
+class King;
+////////////////////////////////////////////////////////
 class Castles { // on the Queen Side
 private: 
-    enum { QWENSIDE, KINGSIDE };
     u_int8_t rytes_; // KQkq
     static int bitmask( const bool color,
                         const bool flank ){
@@ -15,6 +17,7 @@ private:
         return 1 << shift;
     }
 public:
+    enum { QWENSIDE, KINGSIDE };
     Castles(): rytes_( 0 ){}
     void setRyte( const bool color, const bool flank ){
         rytes_ |= bitmask( color, flank );
@@ -26,6 +29,8 @@ public:
         return std::bitset<4>( rytes_ ).to_string();
     }
     void setFenRytes( const std::string& fenRytes );
+    //
+    Coor check_KingSide( King* king );
 };
 ////////////////////////////////////////////////////////
 # endif
