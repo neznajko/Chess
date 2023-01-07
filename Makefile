@@ -7,7 +7,8 @@ SRCDIR   := src
 INCDIR   := inc
 DEPDIR   := dep
 CXXFLAGS := -$(DEBUG) -pedantic -std=c++17 -I$(INCDIR)
-OBJS     := $(addprefix $(OBJDIR)/, chess.o)
+OBJS     := $(addprefix $(OBJDIR)/, chess.o node.o fig.o io.o \
+			 move.o cast.o com.o iterator.o)
 DEPS     := $(patsubst $(OBJDIR)/%.o, $(DEPDIR)/%.d, $(OBJS))
 ################################################################
 $(TARGET): $(OBJS)
