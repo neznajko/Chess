@@ -10,6 +10,12 @@ const int Board::dR[] = {
           -1,                 +1,
     +WIDTH-1, +WIDTH+0, +WIDTH+1,
 };
+const int Board::dROOK[] = {
+    dR[ N ], dR[ E ], dR[ W ], dR[ S ]
+};
+const int Board::dBISHOP[] = {
+    dR[ NW ], dR[ NE ], dR[ SW ], dR[ SE ]
+};
 std::string Board::coor( int k ){
     int i = geti( k ) - FRAME_HEIGHT;
     int j = getj( k ) - FRAME_WIDTH;
@@ -132,9 +138,11 @@ void Node::setunit( color_t color, fig_t fig, int k ){
             u->itor = new KingIterator( this );
             break;
         }
+        case Figure::QUEEN:
         case Figure::ROOK:
+        case Figure::BISHOP:
         {
-            u->itor = new RookIterator( this );
+            u->itor = new LongRangeIterator( fig, this );
             break;
         }
         case Figure::KNIGHT:

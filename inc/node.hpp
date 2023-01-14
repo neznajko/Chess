@@ -30,6 +30,8 @@ struct Board {
            W,     E,
           SW, S, SE, };
     static const int dR[];
+    static const int dROOK[];
+    static const int dBISHOP[];
     //
     static int geti( int k ){ return k >> EXP; }
     static int getj( int k ){ return k % WIDTH; }

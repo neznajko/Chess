@@ -4,9 +4,7 @@
 std::ostream& operator<<( std::ostream& ostrm, Iterator* itor ){
     while( true ){
         Move mv( itor->get_next());
-        if( mv.sorc == -1 ){
-            break;
-        }
+        if( mv.sorc == -1 ) break;
         ostrm << mv << " ";
     }
     return ostrm;
@@ -23,20 +21,10 @@ Move KingIterator::get_next() { //
             return Move( CASTYPE[ f_ ]);
         }
     }
-    static const int dR[] = {
-        Board::dR[ Board::NW ], // Here the order doesn't matter
-        Board::dR[ Board::N  ], // very much.
-        Board::dR[ Board::NE ],
-        Board::dR[ Board::E  ],
-        Board::dR[ Board::W  ],
-        Board::dR[ Board::SE ],
-        Board::dR[ Board::S  ],
-        Board::dR[ Board::SW ],
-    };
   lab: //.. how to set a breakpoint here?
        // check this out: b src/iterator.cpp:29
     if( j_ >= noof_ ) return Move::Fin;
-    int dest{ sorc_ + dR[ j_++ ]};
+    int dest{ sorc_ + Board::dR[ j_++ ]};
     Unit* a{ node_->getActvUnit( dest )};
     if( a->isnil()) {
         Unit* p{ node_->getPasvUnit( dest )};
@@ -51,13 +39,37 @@ void KingIterator::reset( int sorc ){
     Iterator::reset( sorc );
 }
 ///////////////////////////////////////////////////////////////=
-Move RookIterator::get_next() {
-    static const int dR[] = {
-        Board::dR[ Board::N ],
-        Board::dR[ Board::E ],
-        Board::dR[ Board::W ],
-        Board::dR[ Board::S ],
+Move KnightIterator::get_next() {
+    static const int dN[] = {
+        -( Board::WIDTH << 1 ) - 1, // 0               - 0 - 1 -
+        -( Board::WIDTH << 1 ) + 1, // 1               2 - - - 3
+        -( Board::WIDTH      ) - 2, // 2               - - N - - 
+        -( Board::WIDTH      ) + 2, // 3               4 - - - 5
+         ( Board::WIDTH      ) - 2, // 4               - 6 - 7 -
+         ( Board::WIDTH      ) + 2, // 5
+         ( Board::WIDTH << 1 ) - 1, // 6
+         ( Board::WIDTH << 1 ) + 1, // 7
     };
+  lab:
+    if( j_ >= noof_ ) return Move::Fin;
+    int dest{ sorc_ + dN[ j_++ ]};
+    Unit* a{ node_->getActvUnit( dest )};
+    if( a->isnil()) {
+        Unit* p{ node_->getPasvUnit( dest )};
+        int type = ( p->isnil()) ? MOVE : CRON;
+        return Move( type, sorc_, dest );
+    } else { // guard or friendly unit
+        goto lab;
+    }
+}
+///////////////////////////////////////////////////////////////=
+/////////////////////////////////////////////Q//R//B////////////
+const int  LongRangeIterator::_NOOF[] = { 0, 8, 4, 4 };
+const int* LongRangeIterator::dP[ LongRangeIterator::UNITS + 1 ] = {
+    nullptr, Board::dR, Board::dROOK, Board::dBISHOP,
+};
+///////////////////////////////////////////////////////////////=
+Move LongRangeIterator::get_next() {
   lab:
     if( j_ >= noof_ )return Move::Fin;
     int dest{ cure_ + dR[ j_ ]};
@@ -71,10 +83,8 @@ Move RookIterator::get_next() {
         ++j_;
         cure_ = sorc_;
         goto lab;
-    }    
-}
-///////////////////////////////////////////////////////////////=
-Move KnightIterator::get_next() {
-    return Move::Fin;
+    } 
 }
 ///////////////////////////////////////////////////////////////_
+//
+//
