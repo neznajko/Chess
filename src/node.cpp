@@ -150,6 +150,11 @@ void Node::setunit( color_t color, fig_t fig, int k ){
             u->itor = new KnightIterator( this );
             break;
         }
+        case Figure::PAWN:
+        {
+            u->itor = new PawnIterator( color, this );
+            break;
+        }
         default: break;
     }
 }

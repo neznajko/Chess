@@ -56,5 +56,32 @@ public:
     Move get_next();
 };
 ////////////////////////////////////////////////////////////////
+class PawnIterator: public Iterator {
+private:
+    static const int Nf_FORK_DR = 2;
+    static const int FORK_DR[ RED ][ Nf_FORK_DR ];
+    static const int Nf_PMOT = 4;
+    static const int PMOT[];
+    static const int LAST_RANK[];
+    static const int FYORST_RANK[];
+    const int* dF;
+    const int LAST_RANK_;
+    const int FYORST_RANK_;
+    const int FORWARD_;
+    int kickoff; // fyorst rank double move length
+    int i_;      // and iterator
+    std::vector<Move> pmot_stk;
+public:
+    PawnIterator( color_t color, Node* node ):
+        Iterator( Nf_FORK_DR, node ),
+        dF( FORK_DR[ color ]),
+        LAST_RANK_( LAST_RANK[ color ]),
+        FYORST_RANK_( FYORST_RANK[ color ]),
+        FORWARD_( color ? -Board::WIDTH : Board::WIDTH )
+    {}
+    Move get_next();
+    void reset( int sorc );
+};
+///////////////////////////////////////////////////////////////_
 # endif//ITERATOR_HPP
 ////////////////////////////////////////////////////////////////

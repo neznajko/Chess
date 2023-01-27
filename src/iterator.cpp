@@ -87,4 +87,80 @@ Move LongRangeIterator::get_next() {
 }
 ///////////////////////////////////////////////////////////////_
 //
+// W  L   R  -Board::WIDTH
+//      x    
+// B  L   R  +Board::WIDTH
+//
+//   -1  +1
+const int PawnIterator::FORK_DR[ RED ][ Nf_FORK_DR ] = {
+    { +Board::WIDTH - 1, +Board::WIDTH + 1 }, // Black
+    { -Board::WIDTH - 1, -Board::WIDTH + 1 }, // White
+};
+////////////////////////////////////////////////////////////////
+const int PawnIterator::PMOT[] = {
+    KNIGHT_PMOT,
+    BISHOP_PMOT,
+      ROOK_PMOT,
+     QUEEN_PMOT
+};
+////////////////////////////////////////////////////////////////
+const int PawnIterator::LAST_RANK[] = { 9, 2 };
+const int PawnIterator::FYORST_RANK[] = { 3, 8 };
+////////////////////////////////////////////////////////////////
+Move PawnIterator::get_next() {
+  ENTR:
+    if(! pmot_stk.empty()){
+        Move mv{ pmot_stk.back() };
+        pmot_stk.pop_back(); 
+        return mv;
+    }
+    while( j_ < noof_ ){
+        int dest{ sorc_ + dF[ j_++ ]};
+        Unit* p{ node_->getPasvUnit( dest )};
+        if( p->isgrd()) continue;
+        if( p->isnil()) {
+            if( node_->npas != 0 ){
+                auto acolor = node_->GetActvColor();
+                int npas{ Board::npas_convyort( dest, acolor )};
+                if( npas == node_->npas ){
+                    return Move( CRON | NPAS, sorc_, npas );
+                }
+            }
+            continue;
+        }
+        if( Board::geti( dest ) == LAST_RANK_ ){
+            for( int p = 0; p < Nf_PMOT; ++p ){
+                Move mv{ CRON | PMOT[ p ], sorc_, dest };
+                pmot_stk.push_back( mv );
+            }
+            goto ENTR;
+        }
+        return Move( CRON, sorc_, dest );
+    }
+    while( i_ < kickoff ){
+        int dest{ sorc_ + ( ++i_ ) * FORWARD_ };
+        Unit* a{ node_->getActvUnit( dest )};
+        Unit* p{ node_->getPasvUnit( dest )};
+        if(!( a->isnil() and p->isnil())){
+            return Move::Fin;        
+        }
+        if( Board::geti( dest ) == LAST_RANK_ ){
+            pmot_stk.push_back( Move::Fin ); // et voilà
+            for( int p = 0; p < Nf_PMOT; ++p ){
+                Move mv{ MOVE | PMOT[ p ], sorc_, dest };
+                pmot_stk.push_back( mv );
+            }
+            goto ENTR;
+        }
+        return Move( MOVE, sorc_, dest );
+    }
+    return Move::Fin;
+}
+void PawnIterator::reset( int sorc ){
+    kickoff = Board::geti( sorc ) == FYORST_RANK_ ? 2 : 1;
+    i_ = 0;
+    Iterator::reset( sorc );
+}
+////////////////////////////////////////////////////////////////
+//
 //
