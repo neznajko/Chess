@@ -141,13 +141,11 @@ public:
     Unit * Land( Unit * const unit, const offset_t k );
     Unit * LiftOff( const offset_t k );
     void Register( Generator * const gen,
-                   const offset_t offset ){
-        sqs[ offset ].Register( gen );
-    }
+                   const offset_t offset );
     void Unregister( Generator * const gen,
-                     const offset_t offset ){
-        sqs[ offset ].Unregister( gen );
-    }
+                     const offset_t offset );
+    void InLoopUnregister( Generator * const gen,
+                           const offset_t offset );
     color_t GetUnitColor( const offset_t k ) const;
     friend std::ostream&
     operator<<( std::ostream& os, const Board& board );
@@ -244,6 +242,23 @@ protected:
     Node * const node;
     Board& board;
     std::unordered_set<offset_t> offsets;
+    static int Cmp( const int a, const int b ){
+        return a > b ? 0 : a == b ? 1 : 2;
+    }
+    static int GetDirection( const offset_t a,
+                             const offset_t b ){
+        static const int COMPASS[][3]{
+            { 0, 1, 2 },
+            { 7, 8, 3 },
+            { 6, 5, 4 },
+        };
+        const int i{ Cmp( Board::GetRow( a ),
+                          Board::GetRow( b ))};
+        const int j{ Cmp( Board::GetCol( a ),
+                          Board::GetCol( b ))};
+        return COMPASS[ i ][ j ];
+    }
+    ///////////////////////////////////////////////////=
 public:
     Unit * const unit;
     static Generator * Factory( Unit * const unit );
@@ -255,6 +270,12 @@ public:
     virtual void GetMoves( std::vector<Move>& movs )
         const;
     virtual std::string Str() const;
+    void Insert( const offset_t k ){
+        offsets.insert( k );
+    }
+    void Erase( const offset_t k ){
+        offsets.erase( k );
+    }
 };
 ////////////////////////////////////////////////////////
 std::ostream&
@@ -278,39 +299,32 @@ public:
     void Update( const offset_t offset ){}
 };
 ////////////////////////////////////////////////////////
-/////////////////////////////////////////[LongRangeGen]
+//////////////////////////////////////////[LongRangeGen]
 ////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+typedef void (Board::*RegisterPtr)( Generator * const,
+                                    const offset_t );
 ////////////////////////////////////////////////////////
 template <fig_t FIG>
 class LongRangeGen: public Generator {
-    static constexpr int NF_LONGRANGE_DR[]{ 0, 8, 4, 4 };
-    static constexpr offset_t ROOK_DR[]{
-        -Board::WIDTH, // N
-        +1,            // E    0
-        +Board::WIDTH, // S  3 R 1
-        -1,            // W    2
-    };                 //
-    static constexpr offset_t BISHOP_DR[]{
-        -Board::WIDTH - 1, // NW
-        -Board::WIDTH + 1, // NE  0   1
-        +Board::WIDTH + 1, // SE    B 
-        +Board::WIDTH - 1, // SW  3   2
-    };                     //
-    static constexpr offset_t const * const DP[]{
-        nullptr,
-        Generator::SHORTRANGE_DR[ KING ],
-        ROOK_DR,
-        BISHOP_DR,
+    static constexpr int LONGRANGE_START[]{
+        -1, 0, 1, 0
     };
-    static constexpr int NF_DR{ NF_LONGRANGE_DR[ FIG ]};
+    static constexpr int LONGRANGE_STEP[]{
+        -1, 1, 2, 2
+    };
+    static constexpr int NF_DR{ NF_SHORTRANGE_DR };
     static constexpr offset_t const * const DR{
-        DP[ FIG ]
+        Generator::SHORTRANGE_DR[ KING ]
     };
+    static constexpr int START{ LONGRANGE_START[ FIG ]};
+    static constexpr int STEP{  LONGRANGE_STEP[  FIG ]};
 public:
     LongRangeGen( Unit * const unit ):
-        Generator( unit ) {}
+        Generator( unit ){}
     void Subscribe();
     void Update( const offset_t offset );
+    void Scan( RegisterPtr f, int b, int dr );
 };
 ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////[CaslGen]
@@ -421,9 +435,9 @@ class Node {
         return std::isupper( c ) != 0;
     }
 public:
+    offset_t enPassant{};
     static std::vector<std::string>
     SplitFEN( const std::string& fen );
-    offset_t enPassant{};
     static Node* cons( const std::string& fen );
     Node():
         army{
@@ -541,7 +555,7 @@ public:
     Brush( const std::string& f, const std::string& b );
     std::string patron( const std::string& txt ) const;
 };
-////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////_
 int main(){
     if( 0 ){
     } else {
@@ -595,6 +609,22 @@ operator<<( std::ostream& os, const SQ& sq ){
 /////////////////////////////////////////////////[Board]
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+void Board::Register( Generator * const gen,
+                      const offset_t offset ){
+    sqs[ offset ].Register( gen );
+    gen->Insert( offset );
+}
+////////////////////////////////////////////////////////
+void Board::Unregister( Generator * const gen,
+                        const offset_t offset ){
+    sqs[ offset ].Unregister( gen );
+    gen->Erase( offset );
+}
+void Board::InLoopUnregister
+( Generator * const gen, const offset_t offset ){
+    sqs[ offset ].Unregister( gen );
+}
 ////////////////////////////////////////////////////////
 offset_t Board::GetOffset( const std::string& sqr ){
     const char file{ sqr[ 0 ]}; // e
@@ -661,7 +691,6 @@ operator<<( std::ostream& os, const Board& board ){
     }
     return os;
 }
-////////////////////////////////////////////////////////
 //////////////////////////////////////////////////[Unit]
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -737,8 +766,8 @@ Node* Node::cons( const std::string& fen ){
 }
 ////////////////////////////////////////////////////////
 Unit * Node::InsertCoin( const char c,
-                       const int i,
-                       const int j ){
+                         const int i,
+                         const int j ){
     const color_t color{ GetColor( c )};
     const fig_t fig{ GetFig( c )};
     const offset_t k{ Board::GetOffset( i, j )};
@@ -772,7 +801,7 @@ void Node::UndoMove( const Move& mov ){
     board.Land( unit, mov.src );
     if( mov.type == CRON ){
         unit = army[ !unit->GetColor()].dance();
-        board.Land( unit, unit->GetOffset());
+        board.Land( unit, mov.dst );
     }
     FlipTheSwitch();
 }
@@ -786,6 +815,8 @@ operator<<( std::ostream& os, Node const * const node ){
 ////////////////////////////////////////////////////////
 /////////////////////////////////////////////[Generator]
 ////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+# include <set>
 ////////////////////////////////////////////////////////
 Generator::Generator( Unit * const unit ):
     unit( unit ),
@@ -801,14 +832,24 @@ Generator * Generator::Factory( Unit * const unit ){
     case KNIGHT: {
         return new ShortRangeGen<KNIGHT>( unit );
     }
+    case QUEEN: {
+        return new LongRangeGen<QUEEN>( unit );
+    }
+    case ROOK: {
+        return new LongRangeGen<ROOK>( unit );
+    }
+    case BISHOP: {
+        return new LongRangeGen<BISHOP>( unit );
+    }
     default: break;
     }
     return {};
 }
 ////////////////////////////////////////////////////////
 void Generator::Unsubscribe() {
+    // Calling here Unregister will cause problems
     for( const offset_t offset: offsets ){
-        board.Unregister( this, offset );
+        board.InLoopUnregister( this, offset );
     }
     offsets.clear();
 }
@@ -841,9 +882,12 @@ std::string Generator::Str() const {
     if( offsets.empty()){
         return {};
     }
+    // make it sorted
+    std::set<offset_t> copY( offsets.begin(),
+                             offsets.end());
     std::stringstream ss;
     ss << unit << ":: ";
-    for( const offset_t offset: offsets ){
+    for( const offset_t offset: copY ){
         ss << Board::GetCoord( offset ) << " ";
     }
     return ss.str();
@@ -860,25 +904,59 @@ operator<<( std::ostream& os,
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 template <fig_t FIG>
-void ShortRangeGen<FIG>::Subscribe() {
+void ShortRangeGen<FIG>::Subscribe(){
     for( int j{}; j < NF_DR; ++j ){
         const offset_t k = unit->GetOffset() + DR[ j ];
         if( board.GetUnitColor( k ) == BLUE ){
             continue;
         }
         board.Register( this, k );
-        offsets.insert( k );
     }
 }
 ////////////////////////////////////////////////////////
-/////////////////////////////////////////[ShortRangeGen]
+//////////////////////////////////////////[LongRangeGen]
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 template <fig_t FIG>
-void LongRangeGen<FIG>::Subscribe() {
+void LongRangeGen<FIG>::Scan
+( RegisterPtr f, int b, int dr ){
+    while( true ){
+        b += dr;
+        const color_t color{
+            board.GetUnitColor( b )
+        };
+        if( color == BLUE ){
+            break;
+        }
+        // Register v Unregister
+        ( board.*f )( this, b );
+        if( color != RED ){
+            break;
+        }
+    }
+}
+template <fig_t FIG>
+void LongRangeGen<FIG>::Subscribe(){
+    const int a{ unit->GetOffset()};
+    RegisterPtr f{ &Board::Register };
+    for( int j{ START }; j < NF_DR; j += STEP ){
+        int b{ a };
+        const int dr{ DR[ j ]}; 
+        Scan( f, b, dr );
+    }
 }
 template <fig_t FIG>
 void LongRangeGen<FIG>::Update( const offset_t offset ){
+    int j{ GetDirection( unit->GetOffset(), offset )};
+    const int dr{ DR[ j ]};
+    const color_t color{ board.GetUnitColor( offset )};
+    int b{ offset };
+    RegisterPtr f{
+        color == RED ?
+        &Board::Register :
+        &Board::Unregister
+    };
+    Scan( f, b, dr );
 }
 ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////[CaslGen]
@@ -1142,8 +1220,8 @@ void Com::Launch(){ // firefox
     code_t comsat{ FIN };
     do {
         std::cout <<
-            Painter::paint( node->GetBoard()).str() <<
-            node;
+            node  <<
+            Painter::paint( node->GetBoard()).str();
         comsat = Exec();
         if( comsat == SIGSEGV ){
             std::cout << "Pure virtual function call!\n";
@@ -1243,6 +1321,4 @@ code_t Com::Select(){ // .. your favoirte editor
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 // DOTO: - Remoo __ form static const stuff
-//       + make coffee
-//       + enable remove, print bench
-//       - upload to Git
+//
