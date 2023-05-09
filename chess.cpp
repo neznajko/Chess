@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////
-# include <vector>
 # include <iostream>
+# include <vector>
 ////////////////////////////////////////////////////////
 template <typename T>
 std::ostream& operator<<( std::ostream& ostrm,
                           const std::vector<T>& vec ){
     ostrm << "[";
-    for( int j = 0, n = vec.size(); j < n; ++j ){
+    for( std::size_t j{}, n{ vec.size()}; j < n; ++j ){
         ostrm << " " << vec[ j ] << " ,"[ j < n - 1 ];
     }
     return ostrm << "]";
@@ -16,19 +16,19 @@ std::ostream& operator<<( std::ostream& ostrm,
 ////////////////////////////////////////////////////////
 void benchmark( void (*f)(), int NfLoops ){
     using namespace std::chrono;
-    const auto start{ steady_clock::now() };
+    const auto start{ steady_clock::now()};
     while( NfLoops-- > 0 ){
         f();
     }
-    const auto stop{ steady_clock::now() };
-    duration<double> total = stop - start;
+    const auto stop{ steady_clock::now()};
+    duration<double> total{ stop - start };
     std::cout << total.count() << " sec\n";
 }
 ////////////////////////////////////////////////////////
-# include <unordered_set>
-////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////[SQ]
 ////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+# include <unordered_set>
 ////////////////////////////////////////////////////////
 class Unit;
 class Generator;
@@ -41,8 +41,7 @@ class SQ {
     std::unordered_set<Generator *> subscribers;
     void Notify() const;
 public:
-    SQ( const offset_t offset,
-        Unit * unit ):
+    SQ( const offset_t offset, Unit * unit ):
         offset( offset ),
         unit( unit )
         {}
@@ -91,6 +90,8 @@ public:
 //    +---+---+---+---+---+---+---+---+---+---+
 ////////////////////////////////////////////////////////
 # include <string>
+# include <cctype>
+////////////////////////////////////////////////////////
 enum { BLACK, WHITE, RED, BLUE };
 enum { QSIDE, KSIDE, CENTER };
 ////////////////////////////////////////////////////////
@@ -98,21 +99,85 @@ typedef int color_t;
 typedef bool flank_t;
 ////////////////////////////////////////////////////////
 namespace Casl {
-    static constexpr int __KINGS__COL{ 5 };
-    static constexpr int ROOKS_COL[]{ 1, 8 };
-    static constexpr int __KINGS__DR[]{ -1, 1 };
-    static constexpr int __KINGS__SQS{ 2 };
-    static constexpr int __ROOKS__SQS[]{ 3, 2 };
+    static constexpr int KING_COL{ 5 };
+    static constexpr int ROOK_COL[]{ 1, 8 };
+    static constexpr int KING_DR[]{ -1, 1 };
+    static constexpr int KING_SQS{ 2 };
+    static constexpr offset_t KING_FROM[]{ // B, W
+        25, 95
+    }; //                                Q K
+    static constexpr offset_t KING_TO[][ CENTER ]{
+        { 23, 27 }, { 93, 97 }
+    };
+    static constexpr offset_t ROOK_FROM[][ CENTER ]{
+        { 21, 28 }, { 91, 98 }
+    };
+    static constexpr offset_t ROOK_TO[][ CENTER ]{
+        { 24, 26 }, { 94, 96 }
+    };
+    ////////////////////////////////////////////////////
+    // B = 0, Q = 0 0 - 00 BQ C = {B,W}
+    // W = 1, K = 1 1 - 01 BK F = {Q,K}
+    //              2 - 10 WQ J = {0,1,2,3}
+    //              3 - 11 WK J = C << 1 + F
+    // M = { 1000, 0100, 0010, 0001 }, M = 1 << J
+    ///////////////////////////////////////////////////=
+    // FEN + CF + J + MASK     8 4 2 1
+    //  k  - BK - 1 -  2       K Q k q
+    //  q  - BQ - 0 -  1
+    //  K  - WK - 3 -  8
+    //  Q  - WQ - 2 -  4
+    ////////////////////////////////////////////////////
+    color_t GetColor( const char c ){
+        return std::isupper( c ) != 0;
+    }
+    flank_t GetFlank( const char c ){
+        return std::tolower( c ) == 'k'; 
+    }
+    int GetJ( const color_t c, const flank_t f ){
+        return ( c << 1 ) + f;
+    }
+    color_t GetC( const int j ){
+        return j >> 1;
+    }
+    flank_t GetF( const int j ){
+        return j & 1;
+    }
+    int GetMask( color_t c, flank_t f ){
+        return 1 << GetJ( c, f );
+    }
+    int GetMask( const char c ){
+        return GetMask( GetColor( c ), GetFlank( c ));
+    }
+    int GetRytes( const std::string& fen ){
+        int rytes{};
+        if( fen != "-" ){
+            for( const char c: fen ){
+                rytes |= GetMask( c );
+            }
+        }
+        return rytes;
+    }
+    std::string GetFEN( int rytes ){
+        static const char C[]{ "qkQK" };
+        std::string fen;
+        for( int j{}; rytes; rytes >>= 1, ++j ){
+            if( rytes & 1 ){
+                fen.push_back( C[ j ]);
+            }
+        }
+        return fen.empty() ? "-" : fen;
+    }
 };
 ////////////////////////////////////////////////////////
 class Board {
     std::vector<SQ> sqs;
 public:
     static constexpr int WIDTH{ 10 };
-    static constexpr int __HEIGHT{ 12 };
-    static constexpr int SIZE{ WIDTH * __HEIGHT };
+    static constexpr int HEIGHT{ 12 };
+    static constexpr int SIZE{ WIDTH * HEIGHT };
     static constexpr int FRAME_WIDTH{ 1 };
-    static constexpr int __FRAME__HEIGHT{ 2 };
+    static constexpr int FRAME_HEIGHT{ 2 };
     static constexpr int PMOT_ROW[]{ 9, 2 };
     static offset_t GetOffset( const int row,
                                const int col ){
@@ -140,6 +205,8 @@ public:
     Board();
     Unit * Land( Unit * const unit, const offset_t k );
     Unit * LiftOff( const offset_t k );
+    Unit * Travel( const offset_t src,
+                   const offset_t dst );
     void Register( Generator * const gen,
                    const offset_t offset );
     void Unregister( Generator * const gen,
@@ -147,9 +214,9 @@ public:
     void InLoopUnregister( Generator * const gen,
                            const offset_t offset );
     color_t GetUnitColor( const offset_t k ) const;
+    friend class Painter;
     friend std::ostream&
     operator<<( std::ostream& os, const Board& board );
-    friend class Painter;
 };
 ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////[Unit]
@@ -164,7 +231,7 @@ class Generator;
 ////////////////////////////////////////////////////////
 class Unit {
     const color_t color;
-    fig_t    fig; // can change via promotn
+    fig_t fig; // can change via promotn
     offset_t offset{};
 public:
     static Unit * const NIL; // empty square
@@ -178,7 +245,7 @@ public:
             SetFig( fig );
         }
     Node * const node; // backdoor pointer
-    Generator * gen = nullptr; // changing under promotn
+    Generator * gen{}; // changing under promotn
     Unit * prev;
     Unit * next;
     bool isNIL() const {
@@ -217,9 +284,9 @@ struct Move;
 ////////////////////////////////////////////////////////
 class Generator {
 protected:
-    static constexpr int NF_SHORTRANGE_DR{ 8 };
+    static constexpr int NF_DR{ 8 };
     static constexpr offset_t
-    SHORTRANGE_DR[][ NF_SHORTRANGE_DR ]{ // King
+    SHORTRANGE_DR[][ NF_DR ]{ // King
         { -Board::WIDTH - 1, // NW
           -Board::WIDTH,     // N
           -Board::WIDTH + 1, // NE     0 1 2
@@ -267,8 +334,8 @@ public:
     virtual void Subscribe() = 0;
     void Unsubscribe();
     virtual void Update( const offset_t offset ) = 0;
-    virtual void GetMoves( std::vector<Move>& movs )
-        const;
+    virtual void GetMoves
+    ( std::vector<Move>& movs ) const;
     virtual std::string Str() const;
     void Insert( const offset_t k ){
         offsets.insert( k );
@@ -287,8 +354,6 @@ operator<<( std::ostream& os,
 ////////////////////////////////////////////////////////
 template <fig_t FIG>
 class ShortRangeGen: public Generator {
-    static constexpr int
-    NF_DR{ NF_SHORTRANGE_DR };
     static constexpr offset_t const * const DR{
         Generator::SHORTRANGE_DR[ FIG == KNIGHT ]
     };
@@ -313,7 +378,6 @@ class LongRangeGen: public Generator {
     static constexpr int LONGRANGE_STEP[]{
         -1, 1, 2, 2
     };
-    static constexpr int NF_DR{ NF_SHORTRANGE_DR };
     static constexpr offset_t const * const DR{
         Generator::SHORTRANGE_DR[ KING ]
     };
@@ -330,38 +394,44 @@ public:
 ///////////////////////////////////////////////[CaslGen]
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-template <flank_t F>
 class CaslGen: public Generator {
-    static const int
-    ROOKS_COL{ Casl::ROOKS_COL[ F ]};
-    static const int
-    __KINGS__DR{   Casl::__KINGS__DR[ F ]};
-    static const int
-    __ROOKS__DR{ -           __KINGS__DR };
-    static const int
-    __ROOKS__SQS{ Casl::__ROOKS__SQS[ F ]};
+    const int rookCol;
+    const int kingDr;
+    const int caslRow;
+    const offset_t kingOffset;
+    const offset_t rookOffset;
+    const int mask;
 public:
-    CaslGen( Unit * const king ):
-        Generator( king ) {}
-    int GetCaslRow() const {
-        return Board::PMOT_ROW[ !unit->GetColor()];
-    }
+    CaslGen( Unit * const king, const flank_t flank ):
+        Generator( king ),
+        rookCol( Casl::ROOK_COL[ flank ]),
+        kingDr( Casl::KING_DR[ flank ]),
+        caslRow( Board::PMOT_ROW[ !king->GetColor()]),
+        kingOffset
+        ( Board::GetOffset( caslRow, Casl::KING_COL )),
+        rookOffset
+        ( Board::GetOffset( caslRow, rookCol )),
+        mask( Casl::GetMask( king->GetColor(),
+                             flank ))
+        {}
+    void FlipFlop();
     void Subscribe();
     void Update( const offset_t offset );
     void GetMoves( std::vector<Move>& movs )
         const override;
+    std::string Str() const override;
 };
 ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////[KingGen]
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 class KingGen: public ShortRangeGen<KING> {
-    Generator * const casl[ CENTER ];
 public:
+    CaslGen * const casl[ CENTER ];
     KingGen( Unit * const unit ):
         ShortRangeGen<KING>( unit ),
-        casl{ new CaslGen<QSIDE>( unit ),
-              new CaslGen<KSIDE>( unit )}
+        casl{ new CaslGen( unit, QSIDE ),
+              new CaslGen( unit, KSIDE )}
         {}
     ~KingGen() {
         for( const auto flank: { QSIDE, KSIDE }){
@@ -372,6 +442,8 @@ public:
     void Update( const offset_t offset );
     void GetMoves( std::vector<Move>& movs )
         const override;
+    std::string Str() const override;
+    friend class Node;
 };
 ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////[Army]
@@ -408,13 +480,13 @@ operator<<( std::ostream& ostrm, const Army& army ){
     return ostrm;
 }
 ////////////////////////////////////////////////////////
-# include <cctype>
 # include <map>
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////[Node]
 ////////////////////////////////////////////////////////
 typedef unsigned long long u_64;
+typedef unsigned char rytes_t;
 ////////////////////////////////////////////////////////
 class Node {
     Board board;
@@ -431,11 +503,9 @@ class Node {
         };
         return M.at( std::tolower( c ));
     }
-    static color_t GetColor( const char c ){
-        return std::isupper( c ) != 0;
-    }
 public:
     offset_t enPassant{};
+    rytes_t rytes{};
     static std::vector<std::string>
     SplitFEN( const std::string& fen );
     static Node* cons( const std::string& fen );
@@ -450,6 +520,7 @@ public:
     void FlipTheSwitch() {
         theSwitch = !theSwitch;
     }
+    void Elevate( rytes_t rytes );
     Unit * InsertCoin( const char c,
                        const int i,
                        const int j );
@@ -486,10 +557,11 @@ constexpr move_t SHOTCASL{    1 << 5 };
 constexpr move_t LONGCASL{    1 << 6 };
 constexpr move_t NPAS{        1 << 7 };
 struct Move { // Define no constructors here
-    move_t   type; 
+    move_t type; 
     offset_t src;  
     offset_t dst;  
-    offset_t npas; // a backup for move undoing
+    offset_t enPassant; // backups for move undoes
+    rytes_t rytes;      //
     move_t GetPMOT() const {
         static const int PMOT_MASK{ 0x1e }; // 0001 1110
         return type & PMOT_MASK;
@@ -559,8 +631,10 @@ public:
 int main(){
     if( 0 ){
     } else {
-        const std::string fen{ "k7/8/8/8/8/8/8/8 b" };
-        Node * const node{ new Node()};
+        const std::string fen{
+            "r3k2r/8/8/8/8/8/8/R3K3 b k -"
+        };
+        Node * const node{ Node::cons( fen )};
         Com com{ node };
         com.Launch();
     }
@@ -580,7 +654,10 @@ int main(){
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 void SQ::Notify() const {
-    for( Generator * const gen: subscribers ){
+    // Here the Casl Generator is unsubscribing on King
+    // and Rook moves that's why loop over copY.
+    auto copY{ subscribers };
+    for( Generator * const gen: copY ){
         gen->Update( offset );
     }
 }
@@ -609,22 +686,6 @@ operator<<( std::ostream& os, const SQ& sq ){
 /////////////////////////////////////////////////[Board]
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
-void Board::Register( Generator * const gen,
-                      const offset_t offset ){
-    sqs[ offset ].Register( gen );
-    gen->Insert( offset );
-}
-////////////////////////////////////////////////////////
-void Board::Unregister( Generator * const gen,
-                        const offset_t offset ){
-    sqs[ offset ].Unregister( gen );
-    gen->Erase( offset );
-}
-void Board::InLoopUnregister
-( Generator * const gen, const offset_t offset ){
-    sqs[ offset ].Unregister( gen );
-}
 ////////////////////////////////////////////////////////
 offset_t Board::GetOffset( const std::string& sqr ){
     const char file{ sqr[ 0 ]}; // e
@@ -668,6 +729,29 @@ Unit * Board::LiftOff( const offset_t k ){
     return unit;
 }
 ////////////////////////////////////////////////////////
+Unit * Board::Travel( const offset_t src,
+                      const offset_t dst ){
+    Unit * const unit{ LiftOff( src )};
+    return Land( unit, dst );
+}
+////////////////////////////////////////////////////////
+void Board::Register( Generator * const gen,
+                      const offset_t offset ){
+    sqs[ offset ].Register( gen );
+    gen->Insert( offset );
+}
+////////////////////////////////////////////////////////
+void Board::Unregister( Generator * const gen,
+                        const offset_t offset ){
+    sqs[ offset ].Unregister( gen );
+    gen->Erase( offset );
+}
+////////////////////////////////////////////////////////
+void Board::InLoopUnregister
+( Generator * const gen, const offset_t offset ){
+    sqs[ offset ].Unregister( gen );
+}
+////////////////////////////////////////////////////////
 color_t Board::GetUnitColor( const offset_t k ) const {
     Unit const * const unit{ sqs[ k ].GetUnit() };
     if( unit->isNIL()){
@@ -683,8 +767,8 @@ std::ostream&
 operator<<( std::ostream& os, const Board& board ){
     for( int i{ Board::PMOT_ROW[ WHITE ]};
          i <= Board:: PMOT_ROW[ BLACK ]; ++i ){
-        for( int j{ Casl::ROOKS_COL[ QSIDE ]};
-             j <= Casl::ROOKS_COL[ KSIDE ]; ++j ){
+        for( int j{ Casl::ROOK_COL[ QSIDE ]};
+             j <= Casl::ROOK_COL[ KSIDE ]; ++j ){
             const auto k{ Board::GetOffset( i, j )};
             os << board.sqs[ k ];
         }
@@ -716,101 +800,6 @@ std::string Unit::GetStr() const {
     } else {
         return STR[ color ][ fig ];
     }
-}
-//////////////////////////////////////////////////[Node]
-////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
-std::vector<std::string>
-Node::SplitFEN( const std::string& fen ){
-    std::stringstream ss( fen );
-    std::string buf;
-    std::vector<std::string> vec;
-    while( ss >> buf ){
-        vec.push_back( std::move( buf ));
-    }    
-    return vec;
-}
-////////////////////////////////////////////////////////
-// Forsyth–Edwards Notation
-// After 1.e4 c5:
-// rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR
-// w KQkq c6 0 2
-////////////////////////////////////////////////////////
-Node* Node::cons( const std::string& fen ){
-    Node * const node = new Node();
-    int i{ Board::__FRAME__HEIGHT };
-    int j{ Board::FRAME_WIDTH };
-    auto vec{ SplitFEN( fen )};
-    for( const char c: vec[ 0 ]){
-        if( c == '/' ){ // new row
-            j = Board::FRAME_WIDTH; // reset column
-            ++i;                       // increment row
-        } else if( std::isdigit( c )){ // empty sqares
-            j += c - '0'; // rewind
-        } else {
-            node->InsertCoin( c, i, j++ );
-        }
-    }
-    if( vec[ 1 ].front() == 'w' ){
-        node->FlipTheSwitch();
-    }
-    /*
-    for( auto color: { BLACK, WHITE }){
-        node->setMoos( vec[ 2 ], color );
-    }
-    if( vec[ 3 ] != "-" ){
-        node->setEnPassant( Board::getK( vec[ 3 ]));
-    }*/
-    return node;
-}
-////////////////////////////////////////////////////////
-Unit * Node::InsertCoin( const char c,
-                         const int i,
-                         const int j ){
-    const color_t color{ GetColor( c )};
-    const fig_t fig{ GetFig( c )};
-    const offset_t k{ Board::GetOffset( i, j )};
-    Unit * u{ army[ color ].insert( fig, color, this )};
-    board.Land( u, k );
-    return u;
-}
-////////////////////////////////////////////////////////
-void Node::GetMoves( std::vector<Move>& movs ) const {
-    Unit * const king{ army[ theSwitch ].king };
-    Unit * unit{ king };
-    do {
-        unit->gen->GetMoves( movs );
-        unit = unit->next;
-    } while( unit != king );
-}
-////////////////////////////////////////////////////////
-void Node::MakeMove( const Move& mov ){
-    Unit * unit{ board.LiftOff( mov.src )};
-    unit = board.Land( unit, mov.dst );
-    // CRON test
-    if( unit ){
-        army[ unit->GetColor()].unlink( unit );
-        unit->gen->Unsubscribe();
-    }
-    FlipTheSwitch();
-}
-////////////////////////////////////////////////////////
-void Node::UndoMove( const Move& mov ){
-    Unit * unit{ board.LiftOff( mov.dst )};
-    board.Land( unit, mov.src );
-    if( mov.type == CRON ){
-        unit = army[ !unit->GetColor()].dance();
-        board.Land( unit, mov.dst );
-    }
-    FlipTheSwitch();
-}
-////////////////////////////////////////////////////////
-std::ostream&
-operator<<( std::ostream& os, Node const * const node ){
-    return os << node->board
-              << node->army[  node->theSwitch ] 
-              << node->army[ !node->theSwitch ];
 }
 ////////////////////////////////////////////////////////
 /////////////////////////////////////////////[Generator]
@@ -873,7 +862,8 @@ void Generator::GetMoves( std::vector<Move>& movs )
                 type,
                 unit->GetOffset(),
                 offset,
-                node->enPassant
+                node->enPassant,
+                node->rytes
             });            
     }
 }
@@ -962,17 +952,35 @@ void LongRangeGen<FIG>::Update( const offset_t offset ){
 ///////////////////////////////////////////////[CaslGen]
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-template <flank_t F>
-void CaslGen<F>::Subscribe() {
+void CaslGen::FlipFlop(){
+    node->rytes &= ~mask;
+}
+void CaslGen::Subscribe(){
+    for( offset_t j{ kingOffset };; j += kingDr ){
+        board.Register( this, j );
+        if( j == rookOffset ){
+            break;
+        }
+    }
 }
 ////////////////////////////////////////////////////////
-template <flank_t F>
-void CaslGen<F>::Update( const offset_t offset ){
+void CaslGen::Update( const offset_t offset ){
+    if( offset == kingOffset or offset == rookOffset ){
+        Unsubscribe(); // </ Thats
+        FlipFlop();
+    }
+    // update counters ..
 }
-////////////////////////////////////////////////////////
-template <flank_t F>
-void CaslGen<F>::GetMoves( std::vector<Move>& movs )
-    const {
+void CaslGen::GetMoves
+( std::vector<Move>& movs ) const {
+}
+std::string CaslGen::Str() const {
+    std::string s{ Generator::Str()};
+    if( !s.empty()){
+        // discards the leading "Ke1:: " stuff
+        s = s.substr( 6 );
+    }
+    return s;
 }
 ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////[KingGen]
@@ -988,6 +996,182 @@ void KingGen::Update( const offset_t offset ){
 void KingGen::GetMoves( std::vector<Move>& movs )
     const {
     Generator::GetMoves( movs );
+}
+////////////////////////////////////////////////////////
+std::string KingGen::Str() const {
+    std::vector<std::string> caslStr{
+        casl[ BLACK ]->Str(),
+        casl[ WHITE ]->Str()
+    };
+    for( auto& s: caslStr ){
+        if( !s.empty()){
+            s = " " + s;
+        }
+    }
+    return(
+        Generator::Str() + " {" +
+        caslStr[ BLACK ] + "} [" +
+        caslStr[ WHITE ] + "]"
+    );
+}
+//////////////////////////////////////////////////[Node]
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+std::vector<std::string>
+Node::SplitFEN( const std::string& fen ){
+    std::stringstream ss( fen );
+    std::string buf;
+    std::vector<std::string> vec;
+    while( ss >> buf ){
+        vec.push_back( std::move( buf ));
+    }    
+    return vec;
+}
+////////////////////////////////////////////////////////
+// Forsyth–Edwards Notation
+// After 1.e4 c5:
+// rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR
+// w KQkq c6 0 2
+////////////////////////////////////////////////////////
+Node* Node::cons( const std::string& fen ){
+    Node * const node = new Node();
+    int i{ Board::FRAME_HEIGHT };
+    int j{ Board::FRAME_WIDTH };
+    auto vec{ SplitFEN( fen )};
+    for( const char c: vec[ 0 ]){
+        if( c == '/' ){ // new row
+            j = Board::FRAME_WIDTH; // reset column
+            ++i;                       // increment row
+        } else if( std::isdigit( c )){ // empty sqares
+            j += c - '0'; // rewind
+        } else {
+            node->InsertCoin( c, i, j++ );
+        }
+    }
+    if( vec[ 1 ].front() == 'w' ){
+        node->FlipTheSwitch();
+    }
+    node->Elevate( Casl::GetRytes( vec[ 2 ]));
+    if( vec[ 3 ] != "-" ){
+        node->enPassant = Board::GetOffset( vec[ 3 ]);
+    }
+    return node;
+}
+///////////////////////////////////////////////////////_
+void Node::Elevate( rytes_t rytes ){
+    const rytes_t oldRytes{ this->rytes };
+    this->rytes = rytes;
+    rytes ^= oldRytes;
+    for( int j{}; rytes; rytes >>= 1, ++j ){
+        if( rytes & 1 ){
+            const color_t c{ Casl::GetC( j )};
+            const flank_t f{ Casl::GetF( j )};
+            KingGen * const kingGen {
+                ( KingGen * )army[ c ].king->gen
+            };
+            CaslGen * const caslGen{
+                kingGen->casl[ f ]
+            };
+            caslGen->Subscribe();
+        }
+    }    
+}
+////////////////////////////////////////////////////////
+Unit * Node::InsertCoin( const char c,
+                         const int i,
+                         const int j ){
+    const color_t color{ Casl::GetColor( c )};
+    const fig_t fig{ GetFig( c )};
+    const offset_t k{ Board::GetOffset( i, j )};
+    Unit * u{ army[ color ].insert( fig, color, this )};
+    board.Land( u, k );
+    return u;
+}
+///////////////////////////////////////////////////////=
+void Node::GetMoves( std::vector<Move>& movs ) const {
+    Unit * const king{ army[ theSwitch ].king };
+    Unit * unit{ king };
+    do {
+        unit->gen->GetMoves( movs );
+        unit = unit->next;
+    } while( unit != king );
+}
+////////////////////////////////////////////////////////
+void Node::MakeMove( const Move& mov ){
+    move_t isCasl{ mov.GetCASL()};
+    if( isCasl ){
+        const color_t c{ theSwitch };
+        const flank_t f{ isCasl == SHOTCASL };
+        const offset_t king_src{
+            Casl::KING_FROM[ c ]
+        };
+        const offset_t king_dst{
+            Casl::KING_TO[ c ][ f ]
+        };
+        const offset_t rook_src{
+            Casl::ROOK_FROM[ c ][ f ]
+        };
+        const offset_t rook_dst{
+            Casl::ROOK_TO[ c ][ f ]
+        };
+        board.Travel( king_src, king_dst );
+        board.Travel( rook_src, rook_dst );
+    } else {
+        Unit * const unit{
+            board.Travel( mov.src, mov.dst )
+        };
+        // CRON test
+        if( unit ){
+            army[ unit->GetColor()].unlink( unit );
+            unit->gen->Unsubscribe();
+        }
+    }
+    FlipTheSwitch();
+}
+////////////////////////////////////////////////////////
+void Node::UndoMove( const Move& mov ){
+    move_t isCasl{ mov.GetCASL()};
+    if( isCasl ){
+        const color_t c{ !theSwitch };
+        const flank_t f{ isCasl == SHOTCASL };
+        const offset_t king_src{
+            Casl::KING_FROM[ c ]
+        };
+        const offset_t king_dst{
+            Casl::KING_TO[ c ][ f ]
+        };
+        const offset_t rook_src{
+            Casl::ROOK_FROM[ c ][ f ]
+        };
+        const offset_t rook_dst{
+            Casl::ROOK_TO[ c ][ f ]
+        };
+        board.Travel( king_dst, king_src );
+        board.Travel( rook_dst, rook_src );
+    } else {
+        board.Travel( mov.dst, mov.src );
+        if( mov.type == CRON ){
+            Unit * const unit{
+                army[ theSwitch ].dance()
+            };
+            board.Land( unit, mov.dst );
+        }
+    }
+    FlipTheSwitch();
+    // re-establish stuff
+    enPassant = mov.enPassant;
+    Elevate( mov.rytes );
+}
+////////////////////////////////////////////////////////
+std::ostream&
+operator<<( std::ostream& os, Node const * const node ){
+    return os << node->board
+              << Board::GetCoord( node->enPassant )
+              << " " << Casl::GetFEN( node->rytes )
+              << std::endl
+              << node->army[  node->theSwitch ] 
+              << node->army[ !node->theSwitch ];
 }
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -1123,8 +1307,8 @@ std::stringstream Painter::draw( const Board& board ){
     for( int i{ Board::PMOT_ROW[ WHITE ]};
          i <= Board:: PMOT_ROW[ BLACK ]; ++i ){
         const auto u{ i - 2 };
-        for( int j{ Casl::ROOKS_COL[ QSIDE ]};
-             j <= Casl::ROOKS_COL[ KSIDE ]; ++j ){
+        for( int j{ Casl::ROOK_COL[ QSIDE ]};
+             j <= Casl::ROOK_COL[ KSIDE ]; ++j ){
             const auto v{( j - 1 ) * 3 + 1 };
             const auto k{ Board::GetOffset( i, j )};
             const auto unit{ board.sqs[ k ].GetUnit() };
@@ -1159,8 +1343,8 @@ std::stringstream Painter::paint( const Board& board ) {
     for( int i{ Board::PMOT_ROW[ WHITE ]};
          i <= Board:: PMOT_ROW[ BLACK ];
          ++i ){
-        for( int j{ Casl::ROOKS_COL[ QSIDE ]};
-             j <= Casl::ROOKS_COL[ KSIDE ];
+        for( int j{ Casl::ROOK_COL[ QSIDE ]};
+             j <= Casl::ROOK_COL[ KSIDE ];
              ++j ){
             const auto k{ Board::GetOffset( i, j )};
             const auto unit{ board.sqs[ k ].GetUnit() };
@@ -1240,46 +1424,42 @@ code_t Com::MakMov(){
     static const std::regex moveRegex{
         "([a-h][1-8])([a-h][1-8])(.*)"
     };
-    // static const std::regex
-    //     pmotRegex( "=([QRBN])" );
-    // if( nput == "0-0" ){
-    //     return Move( SHOTCASL, 0,
-    //                  node->getActvArmy().king ); 
-    // } else if( nput == "0-0-0" ){
-    //     return Move( LONGCASL, 0,
-    //                  node->getActvArmy().king ); 
-    //  }
-    std::smatch moveMatch;
-    // std::smatch pmotMatch;
-    if( !std::regex_match( nput, moveMatch,
-                           moveRegex )){
-        return SIGSEGV; // Segmentation Fault
-    }
-    const offset_t src{
-        Board::GetOffset( moveMatch[ 1 ].str())
-    };
-    const offset_t dst{
-        Board::GetOffset( moveMatch[ 2 ].str())
-    };
-    // const auto& str{ moveMatch[ 3 ].str() };
+    static const std::regex pmotRegex( "=([QRBN])" );
     move_t type;
-    if( 0 /*node->isEnPassant( dest )*/){
-    //     type = NPAS;
+    offset_t src{};
+    offset_t dst{};
+    if( nput == "0-0" ){
+        type = SHOTCASL;
+    } else if( nput == "0-0-0" ){
+        type = LONGCASL;
     } else {
-        const color_t color {
-            node->GetBoard().GetUnitColor( dst )
-        };
-        type = color == RED ? MOVE : CRON;
-    //     if( std::regex_match( str, pmotMatch,
-    //                           pmotRegex )){
-    //         switch( pmotMatch[ 1 ].str()[ 0 ]){
-    //             case 'Q': type |= QUEEN_PMOT; break;
-    //             case 'R': type |= ROOK__PMOT; break;
-    //             case 'B': type |= BSHOP_PMOT; break;
-    //             case 'N': type |= NIGHT_PMOT; break;
-    //             default: break; // brag an error here
-    //         }
-    //     }
+        std::smatch moveMatch;
+        std::smatch pmotMatch;
+        if( !std::regex_match( nput, moveMatch,
+                               moveRegex )){
+            return SIGSEGV; // Segmentation Fault
+        }
+        src = Board::GetOffset( moveMatch[ 1 ].str());
+        dst = Board::GetOffset( moveMatch[ 2 ].str());
+        const auto& str{ moveMatch[ 3 ].str()};
+        if( dst == node->enPassant ){
+            type = NPAS;
+        } else {
+            const color_t color {
+                node->GetBoard().GetUnitColor( dst )
+            };
+            type = ( color != RED );
+            if( std::regex_match( str, pmotMatch,
+                                  pmotRegex )){
+                switch( pmotMatch[ 1 ].str()[ 0 ]){
+                case 'Q': type |= QUEEN_PMOT; break;
+                case 'R': type |= ROOK__PMOT; break;
+                case 'B': type |= BSHOP_PMOT; break;
+                case 'N': type |= NIGHT_PMOT; break;
+                default: break; // say an error here
+                }
+            }
+        }
     }
     Move mv{ type, src, dst, node->enPassant };
     node->MakeMove( mv );
@@ -1320,5 +1500,4 @@ code_t Com::Select(){ // .. your favoirte editor
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-// DOTO: - Remoo __ form static const stuff
-//
+// DOTO:
