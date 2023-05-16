@@ -366,7 +366,7 @@ class ShortRangeGen: public Generator {
     };
 public:
     ShortRangeGen( Unit * const unit ):
-        Generator( unit ) {}
+        Generator( unit ){}
     void Subscribe();
     void Update( const offset_t offset ){}
 };
@@ -446,6 +446,23 @@ public:
         const override;
     std::string GetStr() const override;
     friend class Node;
+};
+///////////////////////////////////////////////[PawnGen]
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+template <color_t C>
+class PawnGen: public Generator {
+    static const int FORWARD{ 
+        C ? -Board::WIDTH : Board::WIDTH
+    };
+public:
+    PawnGen( Unit * const unit ):
+        Generator( unit ){}
+    void Subscribe();
+    void Update( const offset_t offset ){}
+    void GetMoves( std::vector<Move>& movs )
+        const override;
 };
 ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////[Army]
@@ -843,6 +860,13 @@ Generator * Generator::Factory( Unit * const unit ){
     case BISHOP: {
         return new LongRangeGen<BISHOP>( unit );
     }
+    case PAWN: {
+        if( unit->GetColor()){
+            return new PawnGen<WHITE>( unit );
+        } else {
+            return new PawnGen<BLACK>( unit );
+        }
+    }
     default: break;
     }
     return {};
@@ -1056,6 +1080,29 @@ std::string KingGen::GetStr() const {
         caslStr[ BLACK ] + "} [" +
         caslStr[ WHITE ] + "]"
     );
+}
+///////////////////////////////////////////////[PawnGen]
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+template <color_t C>
+void PawnGen<C>::Subscribe(){
+    const int front{ unit->GetOffset() + FORWARD };
+    for( const int dr: { -1, 1 }){
+        const int offset{ front + dr };
+        const color_t color{
+            board.GetUnitColor( offset )
+        };
+        if( color != BLUE ){
+            board.Register( this, offset );
+        }
+    }
+}
+////////////////////////////////////////////////////////
+template <color_t C>
+void PawnGen<C>::GetMoves
+( std::vector<Move>& movs ) const {
+    std::cout << "Pawn movs\n";    
 }
 //////////////////////////////////////////////////[Node]
 ////////////////////////////////////////////////////////
