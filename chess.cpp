@@ -179,6 +179,7 @@ public:
     static constexpr int FRAME_WIDTH{ 1 };
     static constexpr int FRAME_HEIGHT{ 2 };
     static constexpr int PMOT_ROW[]{ 9, 2 };
+    static constexpr int PAWN_ROW[]{ 3, 8 };
     static offset_t GetOffset( const int row,
                                const int col ){
         return row * WIDTH + col;
@@ -456,6 +457,8 @@ class PawnGen: public Generator {
     static const int FORWARD{ 
         C ? -Board::WIDTH : Board::WIDTH
     };
+    static const int PMOT_ROW{ Board::PMOT_ROW[ C ]};
+    static const int PAWN_ROW{ Board::PAWN_ROW[ C ]};
 public:
     PawnGen( Unit * const unit ):
         Generator( unit ){}
@@ -651,7 +654,7 @@ int main(){
     if( 0 ){
     } else {
         const std::string fen{
-            "r3k2r/8/8/8/8/8/8/R3K3 b k e4"
+            "r3k2r/1P6/8/8/3pP3/8/8/R3K3 b k e3"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
@@ -1098,11 +1101,61 @@ void PawnGen<C>::Subscribe(){
         }
     }
 }
-////////////////////////////////////////////////////////
-template <color_t C>
-void PawnGen<C>::GetMoves
+///////////////////////////////////////////////////////_
+std::vector<Move> Boom( const std::vector<Move>& bufr ){
+    std::vector<Move> blowback;
+    for( const auto& mv: bufr ){
+        for( move_t pmot{ QUEEN_PMOT };
+             pmot <= NIGHT_PMOT;
+             pmot <<= 1 ){
+            Move moov{ mv };
+            moov.type |= pmot;
+            blowback.push_back( moov );
+        }
+    }
+    return blowback;
+}
+///////////////////////////////////////////////////////_
+template <color_t C> void PawnGen<C>::GetMoves
 ( std::vector<Move>& movs ) const {
-    std::cout << "Pawn movs\n";    
+    const offset_t src{ unit->GetOffset()};
+    const offset_t npas{ node->enPassant };
+    const rytes_t rytes{ node->rytes };
+    std::vector<Move> bufr;//bcoz of the promotion blow
+    // captures
+    for( const auto dst: offsets ){
+        const auto dstColor{ board.GetUnitColor( dst )};
+        if( dstColor == RED ){
+            if( dst == npas ){
+                bufr.push_back({ NPAS|CRON, src, dst, npas, rytes });
+            }
+        } else {
+            if( dstColor != unit->GetColor()){
+                bufr.push_back({ CRON, src, dst, npas, rytes });
+            }
+        }
+    }
+    // movs
+    static const int NFS[]{ 1, 2 }; // nf squares
+    const int srcRow{ Board::GetRow( src )};
+    const int nfs{ NFS[ srcRow == PAWN_ROW ]};
+    offset_t dst{ src };
+    for( int j{}; j < nfs; ++j ){
+        dst += FORWARD;
+        const auto dstColor{ board.GetUnitColor( dst )};
+        if( dstColor != RED ){
+            break;
+        }
+        bufr.push_back({ MOVE, src, dst, npas, rytes });
+    }
+    if( !bufr.empty()){
+        // promotion
+        const int dstRow{ Board::GetRow( dst )};
+        if( dstRow == PMOT_ROW ){
+            bufr = Boom( bufr ); 
+        }
+        movs.insert( movs.end(), bufr.begin(), bufr.end());
+    }
 }
 //////////////////////////////////////////////////[Node]
 ////////////////////////////////////////////////////////
