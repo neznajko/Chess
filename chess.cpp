@@ -180,6 +180,7 @@ public:
     static constexpr int FRAME_HEIGHT{ 2 };
     static constexpr int PMOT_ROW[]{ 9, 2 };
     static constexpr int PAWN_ROW[]{ 3, 8 };
+    static constexpr int FORWARD[]{ WIDTH, -WIDTH };
     static offset_t GetOffset( const int row,
                                const int col ){
         return row * WIDTH + col;
@@ -454,9 +455,7 @@ public:
 ////////////////////////////////////////////////////////
 template <color_t C>
 class PawnGen: public Generator {
-    static const int FORWARD{ 
-        C ? -Board::WIDTH : Board::WIDTH
-    };
+    static const int FORWARD{ Board::FORWARD[ C ]};
     static const int PMOT_ROW{ Board::PMOT_ROW[ C ]};
     static const int PAWN_ROW{ Board::PAWN_ROW[ C ]};
 public:
@@ -502,13 +501,14 @@ operator<<( std::ostream& ostrm, const Army& army ){
     return ostrm;
 }
 ////////////////////////////////////////////////////////
-# include <map>
-////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////[Node]
 ////////////////////////////////////////////////////////
+# include <map>
+////////////////////////////////////////////////////////
 typedef unsigned long long u_64;
 typedef unsigned char rytes_t;
+typedef unsigned char move_t;
 ////////////////////////////////////////////////////////
 class Node {
     Board board;
@@ -525,6 +525,8 @@ class Node {
         };
         return M.at( std::tolower( c ));
     }
+    void MakeCasl( const move_t casl,
+                   const bool undo=false );
 public:
     offset_t enPassant{};
     rytes_t rytes{};
@@ -566,8 +568,6 @@ public:
 // Q,R,B,N - Queen, Rook, Bishop, kNight promotion.
 // S,L - Short and Long Castles.
 // P - capture òn pá só
-////////////////////////////////////////////////////////
-typedef unsigned char move_t;
 ////////////////////////////////////////////////////////
 constexpr move_t MOVE{   0           };
 constexpr move_t CRON{        1 << 0 };
@@ -654,7 +654,7 @@ int main(){
     if( 0 ){
     } else {
         const std::string fen{
-            "r3k2r/1P6/8/8/3pP3/8/8/R3K3 b k e3"
+            "r3k2r/1Pp5/8/8/3pP3/8/8/R3K3 b k e3"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
@@ -1146,7 +1146,10 @@ template <color_t C> void PawnGen<C>::GetMoves
         if( dstColor != RED ){
             break;
         }
-        bufr.push_back({ MOVE, src, dst, npas, rytes });
+        // raise the NPAS flag in case of double move
+        // so Node::MakeMove can check more easily.
+        const move_t type = j ? NPAS|MOVE : MOVE;
+        bufr.push_back({ type, src, dst, npas, rytes });
     }
     if( !bufr.empty()){
         // promotion
@@ -1241,65 +1244,82 @@ void Node::GetMoves( std::vector<Move>& movs ) const {
     } while( unit != king );
 }
 ////////////////////////////////////////////////////////
-void Node::MakeMove( const Move& mov ){
-    enPassant = 0;
-    move_t isCasl{ mov.GetCASL()};
-    if( isCasl ){
-        const color_t c{ theSwitch };
-        const flank_t f{ isCasl == SHOTCASL };
-        const offset_t king_src{
-            Casl::KING_FROM[ c ]
-        };
-        const offset_t king_dst{
-            Casl::KING_TO[ c ][ f ]
-        };
-        const offset_t rook_src{
-            Casl::ROOK_FROM[ c ][ f ]
-        };
-        const offset_t rook_dst{
-            Casl::ROOK_TO[ c ][ f ]
-        };
+void Node::MakeCasl( const move_t casl,
+                     const bool undo ){
+    const color_t c{ undo ?! theSwitch : theSwitch };
+    const flank_t f{ casl == SHOTCASL };
+    const offset_t king_src{
+        Casl::KING_FROM[ c ]
+    };
+    const offset_t king_dst{
+        Casl::KING_TO[ c ][ f ]
+    };
+    const offset_t rook_src{
+        Casl::ROOK_FROM[ c ][ f ]
+    };
+    const offset_t rook_dst{
+        Casl::ROOK_TO[ c ][ f ]
+    };
+    if( undo ){
+        board.Travel( king_dst, king_src );
+        board.Travel( rook_dst, rook_src );
+    } else {
         board.Travel( king_src, king_dst );
         board.Travel( rook_src, rook_dst );
+    }
+}
+void Node::MakeMove( const Move& mov ){
+    enPassant = 0;
+    move_t casl{ mov.GetCASL()};
+    if( casl ){
+        MakeCasl( casl );
     } else {
-        Unit * const unit{
+        // pmot
+        const move_t pmot{ mov.GetPMOT()};
+        if( pmot ){
+            Unit * const pawn{
+                const_cast<Unit *>( board.GetUnit( mov.src ))
+            };
+            pawn->SetFig( mov.GetPmotFig( pmot ));
+        }
+        Unit * unit{
             board.Travel( mov.src, mov.dst )
         };
+        if( mov.IsNPAS() and mov.IsCRON()){
+            // get the pawn, bcoz unit now is NIL
+            const offset_t k = mov.dst +
+                Board::FORWARD[ !theSwitch ];
+            unit = board.LiftOff( k );
+        }
         // CRON test
         if( unit ){
             army[ unit->GetColor()].unlink( unit );
             unit->gen->Unsubscribe();
+        } else { // NPAS update
+            if( mov.IsNPAS()){
+                enPassant = mov.src +
+                    Board::FORWARD[ theSwitch ];
+            }
         }
     }
     FlipTheSwitch();
 }
 ////////////////////////////////////////////////////////
 void Node::UndoMove( const Move& mov ){
-    move_t isCasl{ mov.GetCASL()};
-    if( isCasl ){
-        const color_t c{ !theSwitch };
-        const flank_t f{ isCasl == SHOTCASL };
-        const offset_t king_src{
-            Casl::KING_FROM[ c ]
-        };
-        const offset_t king_dst{
-            Casl::KING_TO[ c ][ f ]
-        };
-        const offset_t rook_src{
-            Casl::ROOK_FROM[ c ][ f ]
-        };
-        const offset_t rook_dst{
-            Casl::ROOK_TO[ c ][ f ]
-        };
-        board.Travel( king_dst, king_src );
-        board.Travel( rook_dst, rook_src );
+    move_t casl{ mov.GetCASL()};
+    if( casl ){
+        MakeCasl( casl, true );
     } else {
-        board.Travel( mov.dst, mov.src );
-        if( mov.type == CRON ){
-            Unit * const unit{
-                army[ theSwitch ].dance()
+        if( mov.GetPMOT()){
+            Unit * const exQueen{
+                const_cast<Unit *>( board.GetUnit( mov.dst ))
             };
-            board.Land( unit, mov.dst );
+            exQueen->SetFig( PAWN );
+        }
+        Unit * unit{ board.Travel( mov.dst, mov.src )};
+        if( mov.IsCRON()){
+            unit = army[ theSwitch ].dance();
+            board.Land( unit, unit->GetOffset());
         }
     }
     FlipTheSwitch();
@@ -1389,7 +1409,7 @@ std::string Move::GetStr() const {
         case LONGCASL: return "0-0-0"; 
     }
     std::stringstream ss;
-    ss << (( IsCRON() or IsNPAS()) ? ":" : "" )
+    ss << ( IsCRON() ? ":" : "" )
        << Board::GetCoord( dst );
     if( GetPMOT()){
         ss << "="
@@ -1586,7 +1606,7 @@ code_t Com::MakMov(){
         dst = Board::GetOffset( moveMatch[ 2 ].str());
         const auto& str{ moveMatch[ 3 ].str()};
         if( dst == node->enPassant ){
-            type = NPAS;
+            type = NPAS|CRON;
         } else {
             const color_t color {
                 node->GetBoard().GetUnitColor( dst )
@@ -1602,6 +1622,16 @@ code_t Com::MakMov(){
                 default: break; // say an error here
                 }
             }
+        }
+    }
+    // patch #82fa, update type if pawn double mov
+    Unit const * const unit{
+        node->GetBoard().GetUnit( src )
+    };
+    if( type == MOVE and
+        unit->GetFig() == PAWN ){
+        if( std::abs( dst - src ) > Board::WIDTH ){
+            type |= NPAS;
         }
     }
     Move mv{ type, src, dst, node->enPassant,
@@ -1651,4 +1681,6 @@ code_t Com::Select(){ // .. your favoirte editor
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-// DOTO:
+// DOTO: - split in separete files
+//       - Perft
+//
