@@ -1,0 +1,41 @@
+////////////////////////////////////////////////////////
+# ifndef SQ_HPP
+# define SQ_HPP
+////////////////////////////////////////////////////////
+# include "io.hpp"
+# include "defs.hpp"
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////[SQ]
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+# include <unordered_set>
+////////////////////////////////////////////////////////
+class Unit;
+class Generator;
+////////////////////////////////////////////////////////
+class SQ {
+    const offset_t offset;
+    Unit * unit;
+    std::unordered_set<Generator *> subscribers;
+    void Notify() const;
+public:
+    SQ( const offset_t offset, Unit * unit ):
+        offset( offset ),
+        unit( unit ){}
+    void Register( Generator * const observer ){
+        subscribers.insert( observer );
+    }
+    void Unregister( Generator * const observer ){
+        subscribers.erase( observer );
+    }
+    Unit const * GetUnit() const {
+        return unit;
+    }
+    Unit * SetUnit( Unit * const nextUnit );
+    bool Check( const color_t color );
+    friend std::ostream& //   operating system
+    operator<<( std::ostream& os, const SQ& sq );
+};
+////////////////////////////////////////////////////////
+# endif
+////////////////////////////////////////////////////////
