@@ -105,7 +105,7 @@ namespace Casl {
         }
         return fen.empty() ? "-" : fen;
     }
-};
+}
 ////////////////////////////////////////////////////////
 class Board {
     std::vector<SQ> sqs;
