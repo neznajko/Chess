@@ -179,3 +179,31 @@ operator<<( std::ostream& os, Node const * const node ){
               << node->army[ !node->theSwitch ];
 }
 ////////////////////////////////////////////////////////
+u_64 Node::Perft( const int depth ){
+    static const int NF_MOVES{ 256 };
+    std::vector<Move> movs;
+    movs.reserve( NF_MOVES );
+    GetMoves( movs );
+    u_64 nfMoves{ movs.size()};
+    if( depth > 1 ){
+        for( const Move& mv: movs ){
+            MakeMove( mv );
+            if( !Check()){
+                nfMoves += Perft( depth - 1 );
+            }
+            UndoMove( mv );
+        }
+    }
+    return nfMoves;
+}
+///////////////////////////////////////////////////////_
+bool Node::Check() const {
+    const offset_t k{
+        army[ !theSwitch ].king->GetOffset()
+    };
+    return board.Check( k, theSwitch );
+}
+////////////////////////////////////////////////////////
+// Make function Node::Check
+// Consider a Com perft infut
+//

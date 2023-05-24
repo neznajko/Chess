@@ -32,7 +32,7 @@ public:
         return unit;
     }
     Unit * SetUnit( Unit * const nextUnit );
-    bool Check( const color_t color );
+    bool Check( const color_t color ) const;
     friend std::ostream& //   operating system
     operator<<( std::ostream& os, const SQ& sq );
 };

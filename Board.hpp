@@ -156,7 +156,8 @@ public:
         return sqs[ k ].GetUnit();
     }
     color_t GetUnitColor( const offset_t k ) const;
-    bool Check( const offset_t k, const color_t color ){
+    bool Check( const offset_t k,
+                const color_t color ) const {
         return sqs[ k ].Check( color );
     }
     friend class Painter;

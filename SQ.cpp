@@ -24,7 +24,7 @@ Unit * SQ::SetUnit( Unit * const nextUnit ){
     return prevUnit;
 }
 ////////////////////////////////////////////////////////
-bool SQ::Check( const color_t color ){
+bool SQ::Check( const color_t color ) const {
     for( Generator const * const gen: subscribers ){
         if( gen->unit->GetColor() == color ){
             return true;

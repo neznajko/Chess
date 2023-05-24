@@ -18,7 +18,7 @@ int main(){
     if( 0 ){
     } else {
         const std::string fen{
-            "r3k2r/1Pp5/8/8/3pP3/8/8/R3K3 b k e3"
+            "r3k2r/1Pp5/8/8/3pP3/8/8/R3K3 b k e3 0 1"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
@@ -39,5 +39,8 @@ int main(){
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-// DOTO:
+// DOTO: + install Stockfish
+//       - Com::perft
+//       + change SIGSEGV to SEGMENTATIONFAULT
+//       - debug
 //

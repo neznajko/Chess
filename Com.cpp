@@ -44,7 +44,7 @@ void Com::Launch(){ // firefox
             node  <<
             Painter::paint( node->GetBoard()).str();
         comsat = Exec();
-        if( comsat == SIGSEGV ){
+        if( comsat == SEGMENTATIONFAULT ){
             std::cout << "Pure virtual function call!\n";
         }
     } while( comsat != FIN );
@@ -74,7 +74,7 @@ code_t Com::MakMov(){
         std::smatch pmotMatch;
         if( !std::regex_match( nput, moveMatch,
                                moveRegex )){
-            return SIGSEGV; // Segmentation Fault
+            return SEGMENTATIONFAULT;
         }
         src = Board::GetOffset( moveMatch[ 1 ].str());
         dst = Board::GetOffset( moveMatch[ 2 ].str());

@@ -12,7 +12,8 @@ typedef int code_t;
 ////////////////////////////////////////////////////////
 class Com {
 private:
-    enum { FIN, INSERT, UNDO, SELECT, MOV, SIGSEGV };
+    enum { FIN, INSERT, UNDO, SELECT, MOV,
+           SEGMENTATIONFAULT };
     Node * const node;
     std::string nput;
     std::vector<Move> movs;

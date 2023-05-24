@@ -56,6 +56,8 @@ public:
     friend std::ostream&
     operator<<( std::ostream& os,
                 Node const * const node );
+    // Check vhether passive king is in check.
+    bool Check() const;
 };
 ////////////////////////////////////////////////////////
 # endif
