@@ -30,6 +30,8 @@ code_t Com::Exec(){
         return Insert( args );
     } else if( com == "undo" ){
         return Undo();
+    } else if( com == "perft" ){
+        return Perft( std::stoi( args[ 1 ]));
     } else if( com.size() == 2 ){
         return Select(); // and launch ..
     } else {
@@ -150,5 +152,11 @@ code_t Com::Select(){ // .. your favoirte editor
     }
     std::cout << endl;
     return SELECT;
+}
+////////////////////////////////////////////////////////
+code_t Com::Perft( const int depth ){
+    std::cout << "perft " << depth << ": "
+              << node->Perft( depth ) << endl;
+    return PERFTECT;
 }
 ////////////////////////////////////////////////////////

@@ -52,6 +52,15 @@ Unit * Board::Travel( const offset_t src,
     return Land( unit, dst );
 }
 ////////////////////////////////////////////////////////
+// Register and unregister as different figures.
+Unit * Board::Promote( const fig_t fig, 
+                       const offset_t src,
+                       const offset_t dst ){
+    Unit * const unit{ LiftOff( src )};
+    unit->SetFig( fig );
+    return Land( unit, dst );
+}
+////////////////////////////////////////////////////////
 void Board::Register( Generator * const gen,
                       const offset_t offset ){
     sqs[ offset ].Register( gen );

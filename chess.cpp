@@ -18,7 +18,7 @@ int main(){
     if( 0 ){
     } else {
         const std::string fen{
-            "r3k2r/1Pp5/8/8/3pP3/8/8/R3K3 b k e3 0 1"
+            "r3kb1r/pppppppp/8/8/8/8/PPPPPPPP/R2QK2R w KQkq - 0 1"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
@@ -40,7 +40,9 @@ int main(){
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 // DOTO: + install Stockfish
-//       - Com::perft
+//       + Com::perft
 //       + change SIGSEGV to SEGMENTATIONFAULT
 //       - debug
+//       + Pb7 is subscribed to a4
+//       - Casl counters are not initialized properly.
 //

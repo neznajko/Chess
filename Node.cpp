@@ -115,17 +115,14 @@ void Node::MakeMove( const Move& mov ){
     if( casl ){
         MakeCasl( casl );
     } else {
-        // pmot
         const move_t pmot{ mov.GetPMOT()};
+        Unit * unit;
         if( pmot ){
-            Unit * const pawn{
-                const_cast<Unit *>( board.GetUnit( mov.src ))
-            };
-            pawn->SetFig( mov.GetPmotFig( pmot ));
+            const auto fig{ mov.GetPmotFig( pmot )};
+            unit = board.Promote( fig, mov.src, mov.dst );
+        } else {
+            unit = board.Travel( mov.src, mov.dst );
         }
-        Unit * unit{
-            board.Travel( mov.src, mov.dst )
-        };
         if( mov.IsNPAS() and mov.IsCRON()){
             // get the pawn, bcoz unit now is NIL
             const offset_t k = mov.dst +
@@ -151,13 +148,12 @@ void Node::UndoMove( const Move& mov ){
     if( casl ){
         MakeCasl( casl, true );
     } else {
+        Unit * unit;
         if( mov.GetPMOT()){
-            Unit * const exQueen{
-                const_cast<Unit *>( board.GetUnit( mov.dst ))
-            };
-            exQueen->SetFig( PAWN );
+            unit = board.Promote( PAWN, mov.dst, mov.src );
+        } else {
+            unit = board.Travel( mov.dst, mov.src );
         }
-        Unit * unit{ board.Travel( mov.dst, mov.src )};
         if( mov.IsCRON()){
             unit = army[ theSwitch ].dance();
             board.Land( unit, unit->GetOffset());
@@ -181,18 +177,21 @@ operator<<( std::ostream& os, Node const * const node ){
 ////////////////////////////////////////////////////////
 u_64 Node::Perft( const int depth ){
     static const int NF_MOVES{ 256 };
+    if( !depth ){
+        return 1;
+    }
     std::vector<Move> movs;
     movs.reserve( NF_MOVES );
+    u_64 nfMoves{};
     GetMoves( movs );
-    u_64 nfMoves{ movs.size()};
-    if( depth > 1 ){
-        for( const Move& mv: movs ){
-            MakeMove( mv );
-            if( !Check()){
-                nfMoves += Perft( depth - 1 );
-            }
-            UndoMove( mv );
+    std::cout << movs << endl;
+    return {};
+    for( const Move& mv: movs ){
+        MakeMove( mv );
+        if( !Check()){
+            nfMoves += Perft( depth - 1 );
         }
+        UndoMove( mv );
     }
     return nfMoves;
 }
@@ -204,6 +203,4 @@ bool Node::Check() const {
     return board.Check( k, theSwitch );
 }
 ////////////////////////////////////////////////////////
-// Make function Node::Check
-// Consider a Com perft infut
 //

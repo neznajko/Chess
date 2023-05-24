@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////
 # ifndef COM_HPP
 # define COM_HPP
-////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////_
 # include "Node.hpp"
 # include "Move.hpp"
 ////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@ typedef int code_t;
 class Com {
 private:
     enum { FIN, INSERT, UNDO, SELECT, MOV,
-           SEGMENTATIONFAULT };
+        SEGMENTATIONFAULT, PERFTECT };
     Node * const node;
     std::string nput;
     std::vector<Move> movs;
@@ -25,6 +25,7 @@ private:
     code_t Insert
     ( const std::vector<std::string>& args );
     code_t Exec();
+    code_t Perft( const int depth );
 public:
     Com( Node * const node ): node( node ){}
     void Launch(); // ha{ha}

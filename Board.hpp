@@ -146,6 +146,9 @@ public:
     Unit * LiftOff( const offset_t k );
     Unit * Travel( const offset_t src,
                    const offset_t dst );
+    Unit * Promote( const fig_t fig,
+                    const offset_t src,
+                    const offset_t dst );
     void Register( Generator * const gen,
                    const offset_t offset );
     void Unregister( Generator * const gen,
