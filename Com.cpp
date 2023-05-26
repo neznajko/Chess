@@ -160,3 +160,6 @@ code_t Com::Perft( const int depth ){
     return PERFTECT;
 }
 ////////////////////////////////////////////////////////
+// - consider here a position command
+// - better throw a volley at fin rather than returning
+//   a code

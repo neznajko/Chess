@@ -26,6 +26,8 @@ Node* Node::cons( const std::string& fen ){
     int i{ Board::FRAME_HEIGHT };
     int j{ Board::FRAME_WIDTH };
     auto vec{ SplitFEN( fen )};
+    // Elevate here to update casl counters.
+    node->Elevate( Casl::Rytes( vec[ 2 ]));
     for( const char c: vec[ 0 ]){
         if( c == '/' ){ // new row
             j = Board::FRAME_WIDTH; // reset column
@@ -39,7 +41,6 @@ Node* Node::cons( const std::string& fen ){
     if( vec[ 1 ].front() == 'w' ){
         node->FlipTheSwitch();
     }
-    node->Elevate( Casl::Rytes( vec[ 2 ]));
     if( vec[ 3 ] != "-" ){
         node->enPassant = Board::GetOffset( vec[ 3 ]);
     }
@@ -184,8 +185,6 @@ u_64 Node::Perft( const int depth ){
     movs.reserve( NF_MOVES );
     u_64 nfMoves{};
     GetMoves( movs );
-    std::cout << movs << endl;
-    return {};
     for( const Move& mv: movs ){
         MakeMove( mv );
         if( !Check()){

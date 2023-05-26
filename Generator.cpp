@@ -166,13 +166,17 @@ void CaslGen::Subscribe(){
 }
 ////////////////////////////////////////////////////////
 void CaslGen::Update( const offset_t offset ){
+    const color_t color{ board.GetUnitColor( offset )};
     if( offset == kingSrc or offset == rookSrc ){
-        Unsubscribe(); // </ Thats
-        FlipFlop();
+        // A fix for setting up the initial position.
+        if( color != this->color ){
+            Unsubscribe(); // </ Thats
+            FlipFlop();
+        }
         return;
     }
     // update counters ..
-    if( board.GetUnitColor( offset ) == RED ){
+    if( color == RED ){
         --figuresCounter;
     } else {
         ++figuresCounter;

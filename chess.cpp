@@ -18,7 +18,7 @@ int main(){
     if( 0 ){
     } else {
         const std::string fen{
-            "r3kb1r/pppppppp/8/8/8/8/PPPPPPPP/R2QK2R w KQkq - 0 1"
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
