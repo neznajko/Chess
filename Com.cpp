@@ -43,7 +43,7 @@ void Com::Launch(){ // firefox
     code_t comsat{ FIN };
     do {
         std::cout <<
-            node  <<
+            node <<
             Painter::paint( node->GetBoard()).str();
         comsat = Exec();
         if( comsat == SEGMENTATIONFAULT ){

@@ -11,8 +11,8 @@ class Board;
 ////////////////////////////////////////////////////////
 class Painter {
 public:
-    static std::stringstream draw( const Board& board );
-    static std::stringstream paint(const Board& board );
+    static std::stringstream draw(  const Board& board );
+    static std::stringstream paint( const Board& board );
 };
 ////////////////////////////////////////////////////////
 /////////////////////////////////////////////////[Brush]

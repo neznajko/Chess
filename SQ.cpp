@@ -6,10 +6,7 @@
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 void SQ::Notify() const {
-    // Here the Casl Generator is unsubscribing on King
-    // and Rook moves that's why loop over copY.
-    auto copY{ subscribers };
-    for( Generator * const gen: copY ){
+    for( Generator * const gen: subscribers ){
         gen->Update( offset );
     }
 }

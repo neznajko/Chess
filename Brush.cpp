@@ -66,7 +66,7 @@ std::stringstream Painter::draw( const Board& board ){
     return ss;
 }
 ////////////////////////////////////////////////////////
-std::stringstream Painter::paint( const Board& board ) {
+std::stringstream Painter::paint( const Board& board ){
     static const std::string DARK_SQR{ "195;58;20"   };
     static const std::string LYTE_SQR{ "230;150;18"  };
     static const std::string DARK_FIG{ "0;0;0"       };
@@ -88,7 +88,9 @@ std::stringstream Painter::paint( const Board& board ) {
              ++j ){
             const auto k{ Board::GetOffset( i, j )};
             const auto unit{ board.sqs[ k ].GetUnit() };
-            std::string c{ " " + unit->GetStr() + " " };
+            // -O3 is converting NIL to NULL
+            std::string c{ unit ? unit->GetStr() : " " };
+            c = " " + c + " ";
             const color_t color{
                 unit->isNIL() ?
                 WHITE :
