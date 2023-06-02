@@ -27,8 +27,8 @@ int main(){
         benchmark( perft, 1 );
     } else {
         const std::string fen{
-//            "4k2r/8/8/8/8/8/8/4K2R b Kk - 0 1"
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+            "r3k2r/8/8/8/8/8/8/R3KB1R b Kk - 0 1"
+// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
@@ -49,17 +49,14 @@ int main(){
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-// log: from start positoin
-//      Perft 4 1.29796 sec ->  1.5947 sec
-//      Perft 5 34.4201 sec -> 42.8857 sec
-//      with InLoopUnregister  with copy 
-//      + consider how to remove copY from SQ::Notify
-//        in makemove copy rytes in the prologue and at
-//        epilogue call UndoElevate or something and
-//        call unsubsgribe from there
-// Perft 4:  1.04 -> 0.138752 sec
-// Perft 5: 28.01 -> 3.47675 sec
-// Ok this is after -O3 optimization flag
-// With optimization I get sigsegv after drawing the
-// board. Check what is causing the problem.
-//
+// log:
+// "r3k2r/8/8/8/8/8/8/R3KB1R b Kk - 0 1"
+// perft 1 - 25      | 25
+//       2 - 632     | 632
+//       3 - 14940   | 14940
+//       4 - 402028  | 400020
+//       5 - 9638620 |
+// stepback: Casl Counters are not updated properly.
+// Make Update has two arguments square offset and previous
+// piece color, long range units don|t need to update
+// if cure/prev units are non nil.

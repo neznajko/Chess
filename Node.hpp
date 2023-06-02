@@ -46,7 +46,6 @@ public:
         theSwitch = !theSwitch;
     }
     void Elevate( rytes_t rytes );
-    void Delevate( rytes_t rytes );
     Unit * InsertCoin( const char c,
                        const int i,
                        const int j );

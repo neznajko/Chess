@@ -6,7 +6,10 @@
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 void SQ::Notify() const {
-    for( Generator * const gen: subscribers ){
+    // Loop over copy, so CaslGen::Update can safely
+    // unsubscribe, by modifying subscribers.
+    auto copy{ subscribers };
+    for( Generator * const gen: copy ){
         gen->Update( offset );
     }
 }

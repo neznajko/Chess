@@ -51,7 +51,6 @@ void Node::Elevate( rytes_t rytes ){
     const rytes_t oldRytes{ this->rytes };
     this->rytes = rytes;
     rytes ^= oldRytes;
-    // consider checking in !rytes: return
     for( int j{}; rytes; rytes >>= 1, ++j ){
         if( rytes & 1 ){
             const color_t c{ Casl::C( j )};
@@ -67,30 +66,6 @@ void Node::Elevate( rytes_t rytes ){
     }    
 }
 ///////////////////////////////////////////////////////_
-// No need to update current rytes, they have been 
-// changed eventualy by the Casl Generator. rytes are
-// the old rytes before makeing a move.
-void Node::Delevate( rytes_t rytes ){
-    rytes ^= this->rytes;
-    // if rytes is 0, than nothing has changed
-    if( !rytes ){
-        return;
-    }
-    // this is the same code as above, only Usubscribe
-    for( int j{}; rytes; rytes >>= 1, ++j ){
-        if( rytes & 1 ){
-            const color_t c{ Casl::C( j )};
-            const flank_t f{ Casl::F( j )};
-            KingGen * const kingGen {
-                ( KingGen * )army[ c ].king->gen
-            };
-            CaslGen * const caslGen{
-                kingGen->casl[ f ]
-            };
-            caslGen->Unsubscribe();
-        }
-    }    
-}
 ////////////////////////////////////////////////////////
 Unit * Node::InsertCoin( const char c,
                          const int i,
@@ -138,8 +113,6 @@ void Node::MakeCasl( const move_t casl,
 }
 ////////////////////////////////////////////////////////
 void Node::MakeMove( const Move& mov ){
-    // copY casl rytes here, so later de-elevate.
-    const rytes_t rytes{ this->rytes };
     enPassant = 0;
     move_t casl{ mov.GetCASL()};
     if( casl ){
@@ -171,7 +144,6 @@ void Node::MakeMove( const Move& mov ){
         }
     }
     FlipTheSwitch();
-    Delevate( rytes );
 }
 ////////////////////////////////////////////////////////
 void Node::UndoMove( const Move& mov ){

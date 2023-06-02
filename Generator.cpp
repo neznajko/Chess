@@ -168,9 +168,9 @@ void CaslGen::Subscribe(){
 void CaslGen::Update( const offset_t offset ){
     const color_t color{ board.GetUnitColor( offset )};
     if( offset == kingSrc or offset == rookSrc ){
-        // A fix for setting up the initial position.
+        // Allows to setup the initial position.
         if( color != this->color ){
-//            Unsubscribe(); // </ Thats
+            Unsubscribe(); // </ Thats
             FlipFlop();
         }
         return;
