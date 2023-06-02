@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////
 void SQ::Notify() const {
     // Loop over copy, so CaslGen::Update can safely
-    // unsubscribe, by modifying subscribers.
+    // unsubscribe.
     auto copy{ subscribers };
     for( Generator * const gen: copy ){
         gen->Update( offset );
@@ -20,7 +20,10 @@ Unit * SQ::SetUnit( Unit * const nextUnit ){
     if( this->unit ){
         this->unit->offset = offset;
     }
-    Notify();
+    // Notify only if nextUnit or prevUnit is nil
+    if( prevUnit->isNIL() or nextUnit->isNIL()){
+        Notify();
+    }
     return prevUnit;
 }
 ////////////////////////////////////////////////////////

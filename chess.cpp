@@ -23,12 +23,12 @@ void perft(){
 }
 ///////////////////////////////////////////////////////_
 int main(){
-    if( 0 ){
+    if( 1 ){
         benchmark( perft, 1 );
     } else {
         const std::string fen{
-            "r3k2r/8/8/8/8/8/8/R3KB1R b Kk - 0 1"
-// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+//            "r4rk1/8/8/8/8/8/6B1/R3K2R b K - 0 1"
+ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
@@ -48,15 +48,11 @@ int main(){
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////=
 // log:
-// "r3k2r/8/8/8/8/8/8/R3KB1R b Kk - 0 1"
-// perft 1 - 25      | 25
-//       2 - 632     | 632
-//       3 - 14940   | 14940
-//       4 - 402028  | 400020
-//       5 - 9638620 |
-// stepback: Casl Counters are not updated properly.
-// Make Update has two arguments square offset and previous
-// piece color, long range units don|t need to update
-// if cure/prev units are non nil.
+// startpos
+// perft 1 - 20      | 20      |
+//       2 - 400     | 400     |
+//       3 - 8902    | 8902    |
+//       4 - 197281  | 197281  |
+//       5 - 4865609 | 4865609 | 4.29256 sec
