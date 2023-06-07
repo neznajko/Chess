@@ -45,6 +45,8 @@ public:
     }
     void SetFig( const fig_t fig );
     std::string GetStr() const;
+    bool InCheck() const;
+    //
     friend SQ;
     friend std::ostream&
     operator<<( std::ostream& os,

@@ -157,30 +157,12 @@ void CaslGen::FlipFlop(){
 }
 ////////////////////////////////////////////////////////
 void CaslGen::Subscribe(){
-    for( offset_t j{ kingSrc };; j += kingDr ){
-        board.Register( this, j );
-        if( j == rookSrc ){
-            break;
-        }
-    }
+    board.Register( this, kingSrc );
+    board.Register( this, rookSrc );
 }
 ////////////////////////////////////////////////////////
 void CaslGen::Update( const offset_t offset ){
-    const color_t color{ board.GetUnitColor( offset )};
-    if( offset == kingSrc or offset == rookSrc ){
-        // Allows to setup the initial position.
-        if( color != this->color ){
-            Unsubscribe(); // </ Thats
-            FlipFlop();
-        }
-        return;
-    }
-    // update counters ..
-    if( color == RED ){
-        --figuresCounter;
-    } else {
-        ++figuresCounter;
-    }
+    FlipFlop();
 }
 ////////////////////////////////////////////////////////
 std::string CaslGen::GetStr() const {
@@ -192,26 +174,22 @@ std::string CaslGen::GetStr() const {
     if( n ){
         // discard the trailing space as well
         ss << s.substr( prefixLen, n - prefixLen - 1 ) 
-           // and the counter info and a trailing space
-           << "' " << figuresCounter << " ";
+           << " ";
     }
     return ss.str();
 }
 ////////////////////////////////////////////////////////
 bool CaslGen::Go() const {
-    const rytes_t rytes{ node->rytes };
-    if(!( mask & rytes )){
+    if(!( mask & node->rytes )){
         return false;
     }
-    if( figuresCounter ){
+    if( board.GetUnitColor( rookCheckSq ) < RED ){
         return false;
     }
-    for( offset_t j{ kingSrc };; j += kingDr ){
-        if( board.Check( j, !color )){
+    for( auto k: checkSqs ){
+        if( board.GetUnitColor( k ) < RED or
+            board.Check( k, !color )){
             return false;
-        }
-        if( j == kingDst ){
-            break;
         }
     }
     return true;
@@ -223,6 +201,10 @@ bool CaslGen::Go() const {
 void KingGen::GetMoves
 ( std::vector<Move>& movs ) const {
     Generator::GetMoves( movs );
+    //
+    if( unit->InCheck()){
+        return;
+    }
     if( casl[ QSIDE ]->Go()){
         movs.push_back({
                 LONGCASL,

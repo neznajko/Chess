@@ -26,8 +26,6 @@ Node* Node::cons( const std::string& fen ){
     int i{ Board::FRAME_HEIGHT };
     int j{ Board::FRAME_WIDTH };
     auto vec{ SplitFEN( fen )};
-    // Elevate here to update casl counters.
-    node->Elevate( Casl::Rytes( vec[ 2 ]));
     for( const char c: vec[ 0 ]){
         if( c == '/' ){ // new row
             j = Board::FRAME_WIDTH; // reset column
@@ -41,6 +39,7 @@ Node* Node::cons( const std::string& fen ){
     if( vec[ 1 ].front() == 'w' ){
         node->FlipTheSwitch();
     }
+    node->Elevate( Casl::Rytes( vec[ 2 ]));
     if( vec[ 3 ] != "-" ){
         node->enPassant = Board::GetOffset( vec[ 3 ]);
     }
@@ -66,6 +65,25 @@ void Node::Elevate( rytes_t rytes ){
     }    
 }
 ///////////////////////////////////////////////////////_
+void Node::DeElevate( rytes_t rytes ){
+    // this->rytes don't need to be updated, they have
+    // been flip-flopped by the Update method. rytes are
+    // the old rytes, check vhere to unsubscribe.
+    rytes ^= this->rytes;
+    for( int j{}; rytes; rytes >>= 1, ++j ){
+        if( rytes & 1 ){
+            const color_t c{ Casl::C( j )};
+            const flank_t f{ Casl::F( j )};
+            KingGen * const kingGen {
+                ( KingGen * )army[ c ].king->gen
+            };
+            CaslGen * const caslGen{
+                kingGen->casl[ f ]
+            };
+            caslGen->Unsubscribe();
+        }
+    }    
+}
 ////////////////////////////////////////////////////////
 Unit * Node::InsertCoin( const char c,
                          const int i,
@@ -113,6 +131,7 @@ void Node::MakeCasl( const move_t casl,
 }
 ////////////////////////////////////////////////////////
 void Node::MakeMove( const Move& mov ){
+    const auto copyryte{ this->rytes };
     enPassant = 0;
     move_t casl{ mov.GetCASL()};
     if( casl ){
@@ -144,6 +163,7 @@ void Node::MakeMove( const Move& mov ){
         }
     }
     FlipTheSwitch();
+    DeElevate( copyryte );
 }
 ////////////////////////////////////////////////////////
 void Node::UndoMove( const Move& mov ){

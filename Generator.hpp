@@ -123,21 +123,20 @@ public:
 ////////////////////////////////////////////////////////
 class CaslGen: public Generator {
     const color_t color;
-    const int kingDr;
     const offset_t kingSrc;
-    const offset_t kingDst;
     const offset_t rookSrc;
     const int mask;
-    int figuresCounter{};
+    const std::vector<offset_t> checkSqs;
+    const offset_t rookCheckSq;
 public:
     CaslGen( Unit * const king, const flank_t flank ):
         Generator( king ),
         color( king->GetColor()),
-        kingDr( Casl::KING_DR[ flank ]),
         kingSrc( Casl::KING_FROM[ color ]),
-        kingDst( Casl::KING_TO[ color ][ flank ]),
         rookSrc( Casl::ROOK_FROM[ color ][ flank ]),
-        mask( Casl::Mask( color, flank ))
+        mask( Casl::Mask( color, flank )),
+        checkSqs( Casl::CHECK_SQS[ color ][ flank ]),
+        rookCheckSq( Casl::ROOK_CHECK_SQ[ color ][ flank ])
         {}
     void FlipFlop();
     void Subscribe();

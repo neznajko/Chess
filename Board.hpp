@@ -39,7 +39,6 @@
 ////////////////////////////////////////////////////////
 namespace Casl {
     static constexpr int ROOK_COL[]{ 1, 8 };
-    static constexpr int KING_DR[]{ -1, 1 };
     static constexpr offset_t KING_FROM[]{ // B, W
         25, 95
     }; //                                Q K
@@ -105,6 +104,14 @@ namespace Casl {
         }
         return fen.empty() ? "-" : fen;
     }
+    const std::vector<offset_t> CHECK_SQS[][ CENTER ]{
+        {{ 23, 24 }, { 26, 27 }},
+        {{ 93, 94 }, { 96, 97 }},
+    };
+    const offset_t ROOK_CHECK_SQ[][ CENTER ]{
+        { 22, 0 },
+        { 92, 0 },
+    };
 }
 ////////////////////////////////////////////////////////
 class Board {

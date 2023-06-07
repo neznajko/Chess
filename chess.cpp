@@ -27,8 +27,8 @@ int main(){
         benchmark( perft, 1 );
     } else {
         const std::string fen{
-//            "r4rk1/8/8/8/8/8/6B1/R3K2R b K - 0 1"
- "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+            "4k2r/8/8/8/8/8/8/R3K3 w Qk - 0 1"
+// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         };
         Node * const node{ Node::cons( fen )};
         Com com{ node };
@@ -49,10 +49,12 @@ int main(){
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////=
-// log:
-// startpos
-// perft 1 - 20      | 20      |
-//       2 - 400     | 400     |
-//       3 - 8902    | 8902    |
-//       4 - 197281  | 197281  |
-//       5 - 4865609 | 4865609 | 4.29256 sec
+// log: startpos perft
+// 1 - 20      | 20      |
+// 2 - 400     | 400     |
+// 3 - 8902    | 8902    |
+// 4 - 197281  | 197281  |
+// 5 - 4865609 | 4865609 | 4.29256 sec
+//                       | 3.57119 sec !!NWR
+// - make NIL, NOP actual objects
+
