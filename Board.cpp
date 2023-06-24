@@ -88,11 +88,44 @@ color_t Board::GetUnitColor( const offset_t k ) const {
     }
     return unit->GetColor();
 }
-////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////=
+std::string Board::FEN() const {
+    std::stringstream ss;
+    int empty_square_counter{};
+    for( int i{ Board::PMOT_ROW[ WHITE ]};
+           i <= Board::PMOT_ROW[ BLACK ];
+         ++i ){        
+        for( int j{ Casl::ROOK_COL[ QSIDE ]};
+               j <= Casl::ROOK_COL[ KSIDE ];
+             ++j ){
+            const auto k{ Board::GetOffset( i, j )};
+            Unit const * const u{ GetUnit( k )};
+            //
+            if( u->isNIL()){
+                ++empty_square_counter;
+            } else {
+                if( empty_square_counter ){
+                    ss << empty_square_counter;
+                    empty_square_counter = 0;
+                }
+                ss << u->GetStr();
+            }
+        }
+        if( empty_square_counter ){
+            ss << empty_square_counter;
+            empty_square_counter = 0;
+        }
+        ss << "/";
+    }
+    auto s{ ss.str()};
+    s.pop_back();
+    return s;
+}
+///////////////////////////////////////////////////////_
 std::ostream&
 operator<<( std::ostream& os, const Board& board ){
     for( int i{ Board::PMOT_ROW[ WHITE ]};
-         i <= Board:: PMOT_ROW[ BLACK ]; ++i ){
+         i <= Board::PMOT_ROW[ BLACK ]; ++i ){
         for( int j{ Casl::ROOK_COL[ QSIDE ]};
              j <= Casl::ROOK_COL[ KSIDE ]; ++j ){
             const auto k{ Board::GetOffset( i, j )};

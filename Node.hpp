@@ -38,11 +38,16 @@ public:
         army{
             Army( new Unit( KING, BLACK, this )),
             Army( new Unit( KING, WHITE, this )),
-        } {}
-    Board& GetBoard() {
+        }{
+#       ifdef DEBUG
+        std::cout << "Node cons\n";
+#       endif        
+    }
+    ~Node();
+    Board& GetBoard(){
         return board;
     }
-    void FlipTheSwitch() {
+    void FlipTheSwitch(){
         theSwitch = !theSwitch;
     }
     void Elevate( rytes_t rytes );
@@ -51,6 +56,7 @@ public:
                        const int i,
                        const int j );
     u_64 Perft( const int depth );
+    u_64 Perft_( const int depth ); // thread
     void GetMoves( std::vector<Move>& movs ) const;
     void MakeMove( const Move& mov );
     void UndoMove( const Move& mov );
@@ -59,6 +65,7 @@ public:
                 Node const * const node );
     // Check vhether passive king is in check.
     bool Check() const;
+    std::string FEN() const;
 };
 ////////////////////////////////////////////////////////
 # endif

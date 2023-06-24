@@ -170,6 +170,7 @@ public:
                 const color_t color ) const {
         return sqs[ k ].Check( color );
     }
+    std::string FEN() const;
     friend class Painter;
     friend std::ostream&
     operator<<( std::ostream& os, const Board& board );
@@ -177,5 +178,3 @@ public:
 ////////////////////////////////////////////////////////
 # endif
 ////////////////////////////////////////////////////////
-// log: - Consider removing InLoopUnregister, and copy
-// offsets before the loop.

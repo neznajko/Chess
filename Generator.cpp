@@ -11,7 +11,11 @@ Generator::Generator( Unit * const unit ):
     unit( unit ),
     node( unit->node ),
     board( node->GetBoard())
-{}
+{
+#   ifdef DEBUG
+    std::cout << "::>> " << this->unit << endl;
+#   endif
+}
 ////////////////////////////////////////////////////////
 Generator * Generator::Factory( Unit * const unit ){
     switch( unit->GetFig()){

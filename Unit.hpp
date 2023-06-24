@@ -19,11 +19,8 @@ public:
     static Unit * const NOP; // guard square
     Unit( const fig_t fig,
           const color_t color,
-          Node * const node ):
-        color( color ),
-        node( node ){
-        SetFig( fig );
-    }
+          Node * const node );
+    ~Unit();
     Node * const node; // backdoor pointer
     Generator * gen{}; // changing with promotn
     Unit * prev;

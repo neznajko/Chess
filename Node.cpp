@@ -15,6 +15,12 @@ Node::SplitFEN( const std::string& fen ){
     }    
     return vec;
 }
+///////////////////////////////////////////////////////_
+Node::~Node(){
+#   ifdef DEBUG
+    std::cout << "Node out\n";
+#   endif
+}
 ////////////////////////////////////////////////////////
 // Forsyth–Edwards Notation
 // After 1.e4 c5:
@@ -222,6 +228,18 @@ bool Node::Check() const {
         army[ !theSwitch ].king->GetOffset()
     };
     return board.Check( k, theSwitch );
+}
+////////////////////////////////////////////////////////
+std::string Node::FEN() const{
+    std::stringstream ss;
+    ss << board.FEN() << " "
+       << "bw"[ theSwitch ] << " "
+       << Casl::FEN( rytes ) << " "
+       << ( enPassant ?
+            Board::GetCoord( enPassant ) :
+            "-") << " "
+       << "0 1";
+    return ss.str();
 }
 ////////////////////////////////////////////////////////
 //

@@ -57,7 +57,11 @@ public:
     Unit * const unit;
     static Generator * Factory( Unit * const unit );
     Generator( Unit * const unit );
-    virtual ~Generator(){}
+    virtual ~Generator(){
+#   ifdef DEBUG
+        std::cout << "::<< " << this->unit << endl;
+#   endif        
+    }
     virtual void Subscribe() = 0;
     void Unsubscribe();
     virtual void Update( const offset_t offset ) = 0;
@@ -155,7 +159,10 @@ public:
         ShortRangeGen<KING>( unit ),
         casl{ new CaslGen( unit, QSIDE ),
               new CaslGen( unit, KSIDE )}{}
-    ~KingGen() {
+    ~KingGen(){
+#    ifdef DEBUG        
+        std::cout << "KingGen out\n";
+#    endif
         for( const auto flank: { QSIDE, KSIDE }){
             delete casl[ flank ];
         }

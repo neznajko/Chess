@@ -23,16 +23,18 @@ void perft(){
 }
 ///////////////////////////////////////////////////////_
 int main(){
-    if( 1 ){
+    if( 0 ){
         benchmark( perft, 1 );
     } else {
         const std::string fen{
+//            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
             "4k2r/8/8/8/8/8/8/R3K3 w Qk - 0 1"
-// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         };
         Node * const node{ Node::cons( fen )};
-        Com com{ node };
-        com.Launch();
+        //Com com{ node };
+        //com.Launch();
+        std::cout << node->FEN() << endl;
+        delete node;
     }
 }
 ////////////////////////////////////////////////////////
