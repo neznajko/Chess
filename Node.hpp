@@ -55,7 +55,7 @@ public:
     Unit * InsertCoin( const char c,
                        const int i,
                        const int j );
-    u_64 Perft( const int depth );
+    void Perft( const int depth );
     u_64 Perft_( const int depth ); // thread
     void GetMoves( std::vector<Move>& movs ) const;
     void MakeMove( const Move& mov );

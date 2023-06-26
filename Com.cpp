@@ -155,8 +155,10 @@ code_t Com::Select(){ // .. your favoirte editor
 }
 ////////////////////////////////////////////////////////
 code_t Com::Perft( const int depth ){
+    /*
     std::cout << "perft " << depth << ": "
               << node->Perft( depth ) << endl;
+    */
     return PERFTECT;
 }
 ////////////////////////////////////////////////////////

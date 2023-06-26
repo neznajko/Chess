@@ -15,12 +15,15 @@ fig_t Move::GetPmotFig( move_t pmot ) const {
     }
 }
 ////////////////////////////////////////////////////////
-std::string Move::GetStr() const {
+std::string Move::GetStr( const bool long_fmt ) const {
     switch( GetCASL()){
         case SHOTCASL: return "0-0";
         case LONGCASL: return "0-0-0"; 
     }
     std::stringstream ss;
+    if( long_fmt ){
+        ss << Board::GetCoord( src );
+    }
     ss << ( IsCRON() ? ":" : "" )
        << Board::GetCoord( dst );
     if( GetPMOT()){
@@ -37,3 +40,4 @@ std::ostream& operator<<( std::ostream& os,
     return os << mv.GetStr();
 }
 ////////////////////////////////////////////////////////
+// consider here long and short versions

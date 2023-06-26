@@ -23,7 +23,7 @@ void perft(){
 }
 ///////////////////////////////////////////////////////_
 int main(){
-    if( 0 ){
+    if( 1 ){
         benchmark( perft, 1 );
     } else {
         const std::string fen{
@@ -31,9 +31,9 @@ int main(){
             "4k2r/8/8/8/8/8/8/R3K3 w Qk - 0 1"
         };
         Node * const node{ Node::cons( fen )};
+        node->Perft( 5 );
         //Com com{ node };
         //com.Launch();
-        std::cout << node->FEN() << endl;
         delete node;
     }
 }
@@ -58,5 +58,6 @@ int main(){
 // 4 - 197281  | 197281  |
 // 5 - 4865609 | 4865609 | 4.29256 sec
 //                       | 3.57119 sec !!NWR
+//                       | 1.89115 sec avec threads
 // - make NIL, NOP actual objects
 

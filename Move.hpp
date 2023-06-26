@@ -38,7 +38,8 @@ struct Move { // Define no constructors here
         return type & CASL_MASK;
     }
     fig_t GetPmotFig( move_t pmot ) const;
-    std::string GetStr() const; // e4-e5, f7xd8=N, 0-0, ..
+    // e4-e5, f7xd8=N, 0-0, ..
+    std::string GetStr( const bool long_fmt=false ) const;
  };
 ////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream& ostrm,

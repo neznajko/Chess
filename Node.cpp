@@ -203,9 +203,45 @@ operator<<( std::ostream& os, Node const * const node ){
               << node->army[  node->theSwitch ] 
               << node->army[ !node->theSwitch ];
 }
-////////////////////////////////////////////////////////
-u_64 Node::Perft( const int depth ){
-    static const int NF_MOVES{ 256 };
+///////////////////////////////////////////////////////=
+static const int NF_MOVES{ 256 };
+///////////////////////////////////////////////////////~
+# include <thread>
+# include <numeric>
+///////////////////////////////////////////////////////=
+void Node::Perft( const int depth ){
+    const std::string fen{ FEN()};
+    //
+    std::vector<std::thread> threads;
+    std::vector<u_64> results;
+    //
+    std::vector<Move> movs;
+    movs.reserve( NF_MOVES );
+    GetMoves( movs );
+    const auto nfmovs{ movs.size()};
+    std::vector<Node *> copy{ nfmovs, nullptr };
+    for( std::size_t j{}; j < nfmovs; ++j ){
+        copy[ j ] = cons( fen );
+        copy[ j ]->MakeMove( movs[ j ]);
+        threads.emplace_back([ copy, j, depth, &results ](){
+            u_64 n{ copy[ j ]->Perft_( depth - 1 )};
+            results.push_back( n );
+        });
+    }
+    for( auto &t: threads ){
+        t.join();
+    }
+    for( auto p: copy ){
+        delete p;
+    }
+    copy.clear();
+    u_64 total{
+        std::accumulate( results.begin(), results.end(), 0LLU )
+    };
+    std::cout << total << endl;
+}
+///////////////////////////////////////////////////////_
+u_64 Node::Perft_( const int depth ){
     if( !depth ){
         return 1;
     }
@@ -216,7 +252,7 @@ u_64 Node::Perft( const int depth ){
     for( const Move& mv: movs ){
         MakeMove( mv );
         if( !Check()){
-            nfMoves += Perft( depth - 1 );
+            nfMoves += Perft_( depth - 1 );
         }
         UndoMove( mv );
     }
@@ -241,5 +277,6 @@ std::string Node::FEN() const{
        << "0 1";
     return ss.str();
 }
-////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////*
+///////////////////////////////////////////////////////_
 //
