@@ -14,12 +14,15 @@ void benchmark( void (*f)(), int NfLoops ){
     std::cout << total.count() << " sec\n";
 }
 ///////////////////////////////////////////////////////_
+const std::string STARTPOS{
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+};
+///////////////////////////////////////////////////////=
 void perft(){
-    const std::string fen{
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    };
+    const std::string fen{ STARTPOS };
     Node * const node{ Node::cons( fen )};
     node->Perft( 5 );
+    delete node;
 }
 ///////////////////////////////////////////////////////_
 int main(){
@@ -27,13 +30,11 @@ int main(){
         benchmark( perft, 1 );
     } else {
         const std::string fen{
-//            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-            "4k2r/8/8/8/8/8/8/R3K3 w Qk - 0 1"
+            STARTPOS
         };
         Node * const node{ Node::cons( fen )};
-        node->Perft( 5 );
-        //Com com{ node };
-        //com.Launch();
+        std::cout << node->FEN() << endl
+            << node;
         delete node;
     }
 }
@@ -60,4 +61,8 @@ int main(){
 //                       | 3.57119 sec !!NWR
 //                       | 1.89115 sec avec threads
 // - make NIL, NOP actual objects
-
+// - move Node::MakeCasl to Casl::MakeCasl( node )
+// - consider Node::King( c ) := army[ c ].king
+// - try the improved perft with terminal depth=1
+// - make thread pool with fixed size for Perft
+// 
