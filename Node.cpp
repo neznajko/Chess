@@ -70,7 +70,7 @@ Node* Node::cons( const std::string& fen ){
     if( vec[ 1 ].front() == 'w' ){
         node->FlipTheSwitch();
     }
-    node->Elevate( Casl::Rytes( vec[ 2 ]));
+    node->RestoreRytes( Casl::Rytes( vec[ 2 ]));
     if( vec[ 3 ] != "-" ){
         node->enPassant = Board::GetOffset( vec[ 3 ]);
     }
@@ -83,10 +83,10 @@ Node::~Node(){
 #   endif
 }
 ///////////////////////////////////////////////////////_
-void Node::Elevate( rytes_t rytes ){
-    const rytes_t oldRytes{ this->rytes };
+void Node::RestoreRytes( rytes_t rytes ){
+    const rytes_t currentRytes{ this->rytes };
     this->rytes = rytes;
-    rytes ^= oldRytes;
+    rytes ^= currentRytes;
     for( int j{}; rytes; rytes >>= 1, ++j ){
         if( rytes & 1 ){
             const color_t c{ Casl::C( j )};
@@ -100,10 +100,10 @@ void Node::Elevate( rytes_t rytes ){
     }    
 }
 ///////////////////////////////////////////////////////_
-void Node::DeElevate( rytes_t rytes ){
+void Node::RemoveRytes( rytes_t rytes ){ // MakeMove
     // this->rytes don't need to be updated, they have
     // been flip-flopped by the Update method. rytes are
-    // the old rytes, check vhere to unsubscribe.
+    // before Update rytes, check vhere to unsubscribe.
     rytes ^= this->rytes;
     for( int j{}; rytes; rytes >>= 1, ++j ){
         if( rytes & 1 ){
@@ -118,12 +118,12 @@ void Node::DeElevate( rytes_t rytes ){
     }    
 }
 ////////////////////////////////////////////////////////
-Unit * Node::InsertCoin
+Unit* Node::InsertCoin
 ( const char c, const int i, const int j ){
     const color_t color{ Casl::Color( c )};
     const fig_t fig{ GetFig( c )};
     const offset_t k{ Board::GetOffset( i, j )};
-    Unit * u{ army[ color ].insert( fig, color, this )};
+    Unit* u{ army[ color ].insert( fig, color, this )};
     board.Land( u, k );
     return u;
 }
@@ -155,9 +155,9 @@ void Node::Perft( const int depth ){
 }
 ///////////////////////////////////////////////////////_
 u_64 Node::Perft_( const int depth ){
-    if( !depth ){
-        return 1;
-    }
+	if( depth == 0 ){
+	 	return 1;
+	}
     std::vector<Move> movs;
     movs.reserve( NFMOVES );
     u_64 nfMoves{};
@@ -165,8 +165,8 @@ u_64 Node::Perft_( const int depth ){
     for( const Move& mv: movs ){
         MakeMove( mv );
         if( !Check()){
-            nfMoves += Perft_( depth - 1 );
-        }
+			nfMoves += Perft_( depth - 1 );
+		}
         UndoMove( mv );
     }
     return nfMoves;
@@ -182,7 +182,7 @@ void Node::GetMoves( std::vector<Move>& movs ) const {
 }
 ////////////////////////////////////////////////////////
 void Node::MakeMove( const Move& mov ){
-    const auto copyryte{ this->rytes }; // DeElevate
+    const auto copyryte{ this->rytes }; // RemoveRytes
     enPassant = 0; // reset
     const move_t casl{ mov.GetCASL()};
     if( casl ){
@@ -214,7 +214,7 @@ void Node::MakeMove( const Move& mov ){
         }
     }
     FlipTheSwitch();
-    DeElevate( copyryte );
+    RemoveRytes( copyryte );
 }
 ///////////////////////////////////////////////////////=
 void Node::UndoMove( const Move& mov ){
@@ -222,22 +222,20 @@ void Node::UndoMove( const Move& mov ){
     if( casl ){
         MakeCasl( casl, true );
     } else {
-        Unit * unit;
         if( mov.GetPMOT()){
-            unit = board.Promote( PAWN, mov.dst, 
-                                        mov.src );
+            board.Promote( PAWN, mov.dst, mov.src );
         } else {
-            unit = board.Travel( mov.dst, mov.src );
+            board.Travel( mov.dst, mov.src );
         }
         if( mov.IsCRON()){
-            unit = army[ theSwitch ].dance();
+            Unit* unit = army[ theSwitch ].dance();
             board.Land( unit, unit->GetOffset());
         }
     }
     FlipTheSwitch();
     // re-establish stuff
     enPassant = mov.enPassant;
-    Elevate( mov.rytes );
+    RestoreRytes( mov.rytes );
 }///////////////////////////////////////////////////////=
 std::ostream&
 operator<<( std::ostream& os, Node const * const node ){

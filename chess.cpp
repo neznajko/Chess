@@ -21,7 +21,7 @@ const std::string STARTPOS{
 void perft(){
     const std::string fen{ STARTPOS };
     Node * const node{ Node::cons( fen )};
-    node->Perft( 5 );
+    node->Perft( 4 );
     delete node;
 }
 ///////////////////////////////////////////////////////_
@@ -34,7 +34,7 @@ int main(){
         };
         Node * const node{ Node::cons( fen )};
         std::cout << node->FEN() << endl
-            << node;
+                  << node;
         delete node;
     }
 }
@@ -52,7 +52,7 @@ int main(){
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////=
-// log: startpos perft
+// log: startpos perft   ;
 // 1 - 20      | 20      |
 // 2 - 400     | 400     |
 // 3 - 8902    | 8902    |
@@ -60,6 +60,7 @@ int main(){
 // 5 - 4865609 | 4865609 | 4.29256 sec
 //                       | 3.57119 sec !!NWR
 //                       | 1.89115 sec avec threads
+//                       '
 // - make NIL, NOP actual objects
 // - move Node::MakeCasl to Casl::MakeCasl( node )
 // - consider Node::King( c ) := army[ c ].king

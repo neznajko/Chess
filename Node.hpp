@@ -50,9 +50,9 @@ public://///////////////////////////////////////////////
     Board& GetBoard(){ return board; }
     void FlipTheSwitch(){ theSwitch = !theSwitch; }
     // Subscribe for every new ryte ,`,`,`,`,`,`,`,`,`,`,
-    void Elevate( rytes_t rytes );
+    void RestoreRytes( rytes_t rytes );
     // Compares rytes and this->rytes and unsubscribe : :
-    void DeElevate( rytes_t rytes );
+    void RemoveRytes( rytes_t rytes );
     // Inserts a figure into the position / / / / / / / /
     Unit* InsertCoin
     ( const char c, const int i, const int j );
