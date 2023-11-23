@@ -4,13 +4,17 @@
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
+Unit _NOP(0,0,nullptr);
 Unit * const Unit::NIL{ nullptr };
-Unit * const Unit::NOP{ NIL + 1 };
+//Unit * const Unit::NOP{ NIL + 1 };
+Unit* const Unit::NOP{ &_NOP };
 ///////////////////////////////////////////////////////>
 Unit::Unit( const fig_t fig,
             const color_t color,
-            Node * const node ): color( color ),
-                                 node( node ){
+            Node * const node ): 
+    color( color ),
+    node( node )
+{
     SetFig( fig );
 #   ifdef DEBUG
     std::cout << ">> " << this << endl;

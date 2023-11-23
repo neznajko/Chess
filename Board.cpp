@@ -4,12 +4,12 @@
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-offset_t Board::GetOffset( const std::string& sqr ){
-    const char file{ sqr[ 0 ]}; // e
-    const char rank{ sqr[ 1 ]}; // 4
-    const int j{ file - 'a' + FRAME_WIDTH };
-    const int i{ PMOT_ROW[ BLACK ] - ( rank - '1' )};
-    return GetOffset( i, j );
+offset_t Board::GetOffset( const std::string& sqr){
+    const char file{ sqr[0 ]}; // e
+    const char rank{ sqr[1 ]}; // 4
+    const int j{ file -'a'+ FRAME_WIDTH };
+    const int i{ PMOT_ROW[ BLACK]-( rank -'1')};
+    return GetOffset( i, j);
 }
 ////////////////////////////////////////////////////////
 Board::Board() {
@@ -27,31 +27,29 @@ Board::Board() {
         1,1,1,1,1,1,1,1,1,1,
         1,1,1,1,1,1,1,1,1,1,        
     };
-    for( offset_t j{}; j < SIZE; j++ ){
-        auto unit{ MASK[ j ] ? Unit::NOP : Unit::NIL };
-        sqs.push_back( SQ( j, unit ));
+    for( offset_t j{}; j < SIZE; ++j){
+        auto unit{ MASK[j] ? Unit::NOP : Unit::NIL };
+        sqs.push_back( SQ( j, unit));
     }
 }
-////////////////////////////////////////////////////////
-Unit * Board::Land( Unit * const unit,
-                    const offset_t k ){
-    Unit * prev{ sqs[ k ].SetUnit( unit )};
+///////////////////////////////////////////////////////=
+Unit* Board::Land( Unit* const unit, const offset_t k ){
+    Unit* prev{ sqs[k].SetUnit( unit )};
     unit->gen->Subscribe();
     return prev;
 }
 ////////////////////////////////////////////////////////
-Unit * Board::LiftOff( const offset_t k ){
-    Unit * unit{ sqs[ k ].SetUnit( Unit::NIL )};
+Unit* Board::LiftOff( const offset_t k ){
+    Unit* unit{ sqs[k].SetUnit( Unit::NIL )};
     unit->gen->Unsubscribe();
     return unit;
 }
-////////////////////////////////////////////////////////
-Unit * Board::Travel( const offset_t src,
-                      const offset_t dst ){
-    Unit * const unit{ LiftOff( src )};
+////////////////////////////////////////////////////////////////
+Unit* Board::Travel( const offset_t src, const offset_t dst ){
+    Unit* const unit{ LiftOff( src )};
     return Land( unit, dst );
 }
-////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 // Register and unregister as different figures.
 Unit * Board::Promote( const fig_t fig, 
                        const offset_t src,

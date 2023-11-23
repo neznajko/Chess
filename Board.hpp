@@ -119,7 +119,7 @@ class Board {
 public:
     static constexpr int WIDTH{ 10 };
     static constexpr int HEIGHT{ 12 };
-    static constexpr int SIZE{ WIDTH * HEIGHT };
+    static constexpr int SIZE{ WIDTH*HEIGHT };
     static constexpr int FRAME_WIDTH{ 1 };
     static constexpr int FRAME_HEIGHT{ 2 };
     static constexpr int PMOT_ROW[]{ 9, 2 };
@@ -127,14 +127,14 @@ public:
     static constexpr int FORWARD[]{ WIDTH, -WIDTH };
     static offset_t GetOffset( const int row,
                                const int col ){
-        return row * WIDTH + col;
+        return row*WIDTH+col;
     }
     static offset_t GetOffset( const std::string& sqr );
     static int GetRow( const offset_t offset ){
-        return offset/ WIDTH;
+        return offset/WIDTH;
     }
     static int GetCol( const offset_t offset ){
-        return offset % WIDTH;
+        return offset%WIDTH;
     }
     static char GetFile( const offset_t offset ){
         return "!abcdefgh?"[ GetCol( offset )];
@@ -144,18 +144,19 @@ public:
     }
     static std::string GetCoord( const offset_t offset ){
         static std::string coord{ "g6" };
-        coord[ 0 ] = GetFile( offset );
-        coord[ 1 ] = GetRank( offset );
+        coord[0] = GetFile( offset );
+        coord[1] = GetRank( offset );
         return coord;
     }
+    ////////////////////////////////////////////////////////////
     Board();
-    Unit * Land( Unit * const unit, const offset_t k );
-    Unit * LiftOff( const offset_t k );
-    Unit * Travel( const offset_t src,
-                   const offset_t dst );
-    Unit * Promote( const fig_t fig,
-                    const offset_t src,
-                    const offset_t dst );
+	// returns the previous unit, and subscribes
+    Unit* Land( Unit* const unit, const offset_t k );
+	// unsubscribes
+    Unit* LiftOff( const offset_t k );
+    Unit* Travel( const offset_t src, const offset_t dst );
+    Unit* Promote( const fig_t fig, const offset_t src,
+				   const offset_t dst );
     void Register( Generator * const gen,
                    const offset_t offset );
     void Unregister( Generator * const gen,

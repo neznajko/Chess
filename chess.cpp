@@ -64,6 +64,8 @@ int main(){
 // - make NIL, NOP actual objects
 // - move Node::MakeCasl to Casl::MakeCasl( node )
 // - consider Node::King( c ) := army[ c ].king
-// - try the improved perft with terminal depth=1
+// + try the improved perft with terminal depth=1
 // - make thread pool with fixed size for Perft
-// 
+// - why the comment at SQ.cpp:SetUnit( perft(5) gives
+//   no dif )
+//
