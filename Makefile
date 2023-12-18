@@ -6,7 +6,7 @@ OBJDIR   := obj
 SRCDIR   := .
 INCDIR   := .
 DEPDIR   := dep
-CXXFLAGS := -O3 -$(DEBUG) -pedantic -std=c++17 -I$(INCDIR)
+CXXFLAGS := -O3 -$(DEBUG) -pedantic -std=c++17 -I$(INCDIR) -pthread
 OBJS     := $(addprefix $(OBJDIR)/, chess.o SQ.o \
               Board.o Unit.o Generator.o Node.o Army.o \
               Move.o Brush.o Com.o)
@@ -14,7 +14,7 @@ DEPS     := $(patsubst $(OBJDIR)/%.o, $(DEPDIR)/%.d, \
               $(OBJS))
 ########################################################
 $(TARGET): $(OBJS)
-	$(CXX) -O3 -$(DEBUG) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^
 ########################################################
 -include $(DEPS)
 ########################################################

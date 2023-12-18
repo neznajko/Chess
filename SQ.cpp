@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 # include "Generator.hpp"
 # include "Brush.hpp"
 ////////////////////////////////////////////////////////
@@ -9,6 +9,20 @@ void SQ::Notify() const {
     for( Generator* const gen: subscribers ){
         gen->Update( offset );
     }
+}
+////////////////////////////////////////////////////////
+std::ostream&
+operator<<( std::ostream& os, const SQ& sq ){
+    static const Brush brush( "128;0;0", "0;0;0" );
+    if( sq.subscribers.empty()){
+        return os;
+    }
+    os << brush.patron( Board::GetCoord( sq.offset ))
+       << " ";
+    for( const Generator* const gen: sq.subscribers ){
+        os << gen->unit << " ";
+    }
+    return os;
 }
 ////////////////////////////////////////////////////////
 Unit* SQ::SetUnit( Unit* const nextUnit ){
@@ -33,17 +47,6 @@ bool SQ::Check( const color_t color ) const {
     return false;
 }
 ////////////////////////////////////////////////////////
-std::ostream&
-operator<<( std::ostream& os, const SQ& sq ){
-    static const Brush brush( "128;0;0", "0;0;0" );
-    if( sq.subscribers.empty()){
-        return os;
-    }
-    os << brush.patron( Board::GetCoord( sq.offset ))
-       << " ";
-    for( Generator const * const gen: sq.subscribers ){
-        os << gen->unit << " ";
-    }
-    return os;
-}
-////////////////////////////////////////////////////////
+// log: Consider generator being private to unit, make
+// a bridge between gen an unit clients, subscribe units
+// instead of generators.

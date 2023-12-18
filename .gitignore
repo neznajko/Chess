@@ -1,0 +1,9 @@
+# Ignore executable files
+chess
+
+# Ignore Emacs backup files
+*~
+
+# Ignore Vim swap files
+*.swp
+*.swo
