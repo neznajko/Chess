@@ -7,14 +7,14 @@
 ////////////////////////////////////////////////////////
 # include <set>
 ////////////////////////////////////////////////////////
-Generator::Generator( Unit * const unit ):
-    unit( unit ),
-    node( unit->node ),
-    board( node->GetBoard())
+Generator::Generator( Unit* const unit )
+: unit( unit ),
+  node( unit->node ),
+  board( node->GetBoard())
 {
-#   ifdef DEBUG
+# ifdef DEBUG
     std::cout << "::>> " << this->unit << endl;
-#   endif
+# endif
 }
 ////////////////////////////////////////////////////////
 Generator * Generator::Factory( Unit * const unit ){
