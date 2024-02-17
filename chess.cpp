@@ -26,11 +26,11 @@ void perft(){
 }
 ///////////////////////////////////////////////////////_
 int main(){
-    if( 1 ){
+    if( 0 ){
         benchmark( perft, 1 );
     } else {
         const std::string fen{
-            STARTPOS
+    	    "8/8/8/8/8/8/8/8 w KQkq - 0 1"
         };
         Node * const node{ Node::cons( fen )};
         std::cout << node->FEN() << endl
